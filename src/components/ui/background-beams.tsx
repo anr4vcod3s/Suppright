@@ -110,13 +110,13 @@ export const BackgroundBeams = React.memo(
                   x1: ["0%", "130%"],
                   x2: ["0%", "130%"],
                   y1: ["0%", "150%"],
-                  y2: ["0%", `${120 + Math.random() * 10}%`],
+                  y2: ["0%", `${120 + Math.random() * 10 }%`],
                 }}
                 transition={{
-                  duration: Math.random() * 10 + 16,
+                  duration: Math.random() * 10 + 10,
                   ease: "easeInOut",
                   repeat: Infinity,
-                  delay: Math.random() * 10,
+                  delay: Math.random() * 5,
                 }}
               >
                 <stop stopColor={getBeamColor(index)} stopOpacity="0" />

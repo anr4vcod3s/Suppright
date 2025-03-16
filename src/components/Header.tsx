@@ -34,7 +34,7 @@ const Header = () => {
   }, [prevScrollPos]);
 
   return (
-    <div className="fixed top-0 left-0 w-full flex justify-center px-4 z-50 transition-all duration-300" 
+    <div className="fixed top-2 left-0 w-full flex justify-center px-4 z-50 transition-all duration-300" 
          style={{ transform: visible ? 'translateY(0)' : 'translateY(-100%)' }}>
       <motion.header
         initial={{ opacity: 0, y: -20 }}

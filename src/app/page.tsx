@@ -1,5 +1,5 @@
 import HeroComponent from '@/components/HeroComponent'; 
-import CartDisplay from '@/components/ShoppingCartComponent'; 
+import CartDisplay from '@/components/CartComponent'; 
 
 // Create a new instance of QueryClient
 
