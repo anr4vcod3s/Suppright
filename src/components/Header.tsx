@@ -1,9 +1,11 @@
+// Fixed Header.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SearchComponent } from '@/components/SearchComponent';
+import { Product } from '@/lib/schemas';
 
 const transition = {
   type: 'spring',
@@ -33,6 +35,13 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [prevScrollPos]);
 
+  // Handler for search component
+  const handleProductSelect = (product: Product) => {
+    // Add your product selection logic here
+    console.log('Selected product:', product);
+    // You might want to redirect to product page or add to comparison
+  };
+
   return (
     <div className="fixed top-2 left-0 w-full flex justify-center px-4 z-50 transition-all duration-300" 
          style={{ transform: visible ? 'translateY(0)' : 'translateY(-100%)' }}>
@@ -58,7 +67,7 @@ const Header = () => {
           transition={transition}
         >
           {pathname === '/compare' ? (
-            <SearchComponent />
+            <SearchComponent onProductSelect={handleProductSelect} />
           ) : (
             <motion.button
               whileHover={{ scale: 1.1 }}

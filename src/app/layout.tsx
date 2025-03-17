@@ -1,22 +1,19 @@
-// src/app/layout.tsx
 import '@/app/globals.css';
 import { ReactNode } from 'react';
-import { CartProvider } from '@/context/CartContext';
+import { ComparisonProvider } from '@/context/context';
 import Header from '@/components/Header';
 
-const RootLayout = ({ children }: { children: ReactNode }) => {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <CartProvider>
+        <ComparisonProvider>
           <Header />
           <main>
             {children}
           </main>
-        </CartProvider>
+        </ComparisonProvider>
       </body>
     </html>
   );
-};
-
-export default RootLayout;
+}

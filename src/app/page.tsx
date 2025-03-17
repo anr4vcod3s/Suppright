@@ -1,16 +1,14 @@
 import HeroComponent from '@/components/HeroComponent'; 
-import CartDisplay from '@/components/CartComponent'; 
-
-// Create a new instance of QueryClient
-
+import ComparisonDisplay from '@/components/ComparisonDisplay'; 
+import { ComparisonProvider } from '@/context/context';
 const HomePage = () => {
   return (
-      
-        <main  className="pt-20 flex flex-col items-center">
-          <HeroComponent/>
-          <CartDisplay />
-        </main>
-      
+    <ComparisonProvider>
+      <main className="pt-20 flex flex-col items-center">
+        <HeroComponent />
+        <ComparisonDisplay />
+      </main>
+    </ComparisonProvider>
   );
 };
 
