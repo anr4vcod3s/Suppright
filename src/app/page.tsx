@@ -1,3 +1,4 @@
+"use client";
 import HeroComponent from '@/components/HeroComponent'; 
 import ComparisonDisplay from '@/components/ComparisonDisplay'; 
 import { ComparisonProvider } from '@/context/context';

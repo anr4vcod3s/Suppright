@@ -1,112 +1,129 @@
-import axios from 'axios';
-import { useQuery, QueryClient } from '@tanstack/react-query';
-import { Product } from './schemas';
+import { 
+  Product, 
+  NutritionalInfo, 
+  ProductFeatures, 
+  DietaryInfo, 
+  ProductValueMetrics 
+} from '@/lib/schemas';
+import { ComparisonProductData } from './hooks';
 
-// Create a base axios instance
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
-});
+/**
+ * Normalizes protein source values to more readable format
+ */
+export const normalizeProteinSource = (source: string): string => {
+  const sourceMappings: Record<string, string> = {
+    'whey_concentrate': 'Whey Concentrate',
+    'whey_isolate': 'Whey Isolate',
+    'whey_hydrolysate': 'Whey Hydrolysate',
+    'casein': 'Casein',
+    'egg': 'Egg Protein',
+    'soy': 'Soy Protein',
+    'pea': 'Pea Protein',
+    'rice': 'Rice Protein',
+    'hemp': 'Hemp Protein',
+    'mixed_plant': 'Mixed Plant Protein',
+    'collagen': 'Collagen',
+    'other': 'Other'
+  };
 
-// Define API endpoints and query keys
-export const API_ENDPOINTS = {
-  PRODUCTS: '/products',
-  PRODUCT: (id: string) => `/products/${id}`,
+  return sourceMappings[source] || source;
 };
 
-export const QUERY_KEYS = {
-  ALL_PRODUCTS: 'products',
-  PRODUCT_DETAILS: 'product-details',
-  PRODUCT_COMPARISON: 'product-comparison',
+/**
+ * Normalizes filtration process values to more readable format
+ */
+export const normalizeFiltrationProcess = (process: string): string => {
+  const processMappings: Record<string, string> = {
+    'micro_filtration': 'Micro-Filtration',
+    'ultra_filtration': 'Ultra-Filtration',
+    'cross_flow_filtration': 'Cross-Flow Filtration',
+    'ion_exchange': 'Ion Exchange',
+    'cold_processed': 'Cold Processed',
+    'not_specified': 'Not Specified',
+    'other': 'Other'
+  };
+
+  return processMappings[process] || process;
 };
 
-// Fetch all products (basic info for listings)
-export const fetchProducts = async (): Promise<Product[]> => {
-  const { data } = await api.get(API_ENDPOINTS.PRODUCTS);
-  return data;
-};
-
-// Fetch a single product with all details
-export const fetchProductById = async (id: string): Promise<Product> => {
-  const { data } = await api.get(API_ENDPOINTS.PRODUCT(id));
-  return data;
-};
-
-// Fetch multiple products by ID (for comparison)
-export const fetchProductsById = async (ids: string[]): Promise<Product[]> => {
-  if (!ids.length) return [];
+/**
+ * Adapts database product data for the comparison table component
+ */
+export const adaptProductForComparison = (
+  product: Product,
+  nutritionalInfo?: NutritionalInfo,
+  features?: ProductFeatures,
+  dietaryInfo?: DietaryInfo,
+  valueMetrics?: ProductValueMetrics
+): ComparisonProductData => {
   
-  // Using Promise.all to fetch multiple products in parallel
-  const products = await Promise.all(
-    ids.map(id => fetchProductById(id))
-  );
-  
-  return products;
+  // Create a copy of features to avoid modifying the original
+  const formattedFeatures = features ? {
+    ...features,
+    // Store original enum value in display_protein_source instead of modifying protein_source
+    display_protein_source: normalizeProteinSource(features.protein_source),
+    display_filtration_process: features.filtration_process ? 
+      normalizeFiltrationProcess(features.filtration_process) : undefined
+  } : undefined;
+
+  return {
+    ...product,
+    nutritionalInfo,
+    features: formattedFeatures,
+    dietaryInfo,
+    valueMetrics
+  };
 };
 
-// React Query hooks
-
-// Hook to get all products (basic info)
-export function useProducts() {
-  return useQuery({
-    queryKey: [QUERY_KEYS.ALL_PRODUCTS],
-    queryFn: () => fetchProducts(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
+/**
+ * Batch process multiple products for comparison
+ */
+export const adaptProductsForComparison = (
+  products: Product[],
+  nutritionalInfos: NutritionalInfo[],
+  featuresList: ProductFeatures[],
+  dietaryInfos: DietaryInfo[],
+  valueMetrics: ProductValueMetrics[]
+): ComparisonProductData[] => {
+  return products.map(product => {
+    const nutritionalInfo = nutritionalInfos.find(info => info.product_id === product.id);
+    const features = featuresList.find(f => f.product_id === product.id);
+    const dietaryInfo = dietaryInfos.find(info => info.product_id === product.id);
+    const metrics = valueMetrics.find(m => m.product_id === product.id);
+    
+    return adaptProductForComparison(
+      product,
+      nutritionalInfo,
+      features,
+      dietaryInfo,
+      metrics
+    );
   });
-}
+};
 
-// Hook to get a single product
-export function useProduct(id: string) {
-  return useQuery({
-    queryKey: [QUERY_KEYS.PRODUCT_DETAILS, id],
-    queryFn: () => fetchProductById(id),
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
-}
-
-// Hook to get multiple products for comparison
-export function useProductComparison(ids: string[]) {
-  return useQuery({
-    queryKey: [QUERY_KEYS.PRODUCT_COMPARISON, ids],
-    queryFn: () => fetchProductsById(ids),
-    enabled: ids.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
-}
-
-// Create a React Query client to be used app-wide
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
-
-// Optional: Function to prefetch data for SSR
-export async function prefetchProductsForSSR(queryClient: QueryClient): Promise<void> {
-  await queryClient.prefetchQuery({
-    queryKey: [QUERY_KEYS.ALL_PRODUCTS],
-    queryFn: () => fetchProducts()
-  });
-}
-
-export async function prefetchProductForSSR(queryClient: QueryClient, id: string): Promise<void> {
-  await queryClient.prefetchQuery({
-    queryKey: [QUERY_KEYS.PRODUCT_DETAILS, id],
-    queryFn: () => fetchProductById(id)
-  });
-}
-
-export async function prefetchProductComparisonForSSR(queryClient: QueryClient, ids: string[]): Promise<void> {
-  if (ids.length > 0) {
-    await queryClient.prefetchQuery({
-      queryKey: [QUERY_KEYS.PRODUCT_COMPARISON, ids],
-      queryFn: () => fetchProductsById(ids)
-    });
+/**
+ * Formats a numerical value for display
+ */
+export const formatNumericValue = (value: number | undefined, type: 'price' | 'percentage' | 'weight' | 'default'): string => {
+  if (value === undefined) return '—';
+  
+  switch (type) {
+    case 'price':
+      return `$${value.toFixed(2)}`;
+    case 'percentage':
+      return `${value.toFixed(1)}%`;
+    case 'weight':
+      return `${value.toFixed(1)}g`;
+    case 'default':
+    default:
+      return value.toFixed(1);
   }
-}
+};
+
+/**
+ * Formats a boolean value for display
+ */
+export const formatBooleanValue = (value: boolean | undefined): string => {
+  if (value === undefined) return '—';
+  return value ? '✓' : '✗';
+};

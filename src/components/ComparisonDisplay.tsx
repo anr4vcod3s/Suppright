@@ -1,13 +1,9 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useComparison } from '@/context/context';
+import { useComparison, useComparisonProducts } from '@/context/context';
 import { X, Plus, Scale } from 'lucide-react';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase/client';
-
-// Import Product type from schemas.ts to ensure type consistency
-import { Product } from '@/lib/schemas';
 
 // Extract reusable styles as constants
 const ICON_BUTTON_CLASSES = "w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50";
@@ -15,50 +11,15 @@ const ITEM_AVATAR_CLASSES = "w-8 h-8 bg-gray-200 rounded-full flex items-center 
 
 const ComparisonDisplay = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { products, removeProduct } = useComparison();
+  const { productIds, removeProduct } = useComparison();
+  const { products, isLoading } = useComparisonProducts();
   const [mounted, setMounted] = useState(false);
-  const [comparedProducts, setComparedProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   
   // Handle client-side mounting to prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch product details based on product IDs
-  useEffect(() => {
-    if (!mounted || products.length === 0) return;
-    setIsLoading(true);
-    
-    const fetchProducts = async () => {
-      try {
-        // Fetch actual product data from Supabase
-        const { data, error } = await supabase
-          .from('products')
-          .select('*, nutritional_info(*), amino_profiles(*)')
-          .in('id', products);
-        
-        if (error) {
-          console.error('Error fetching products:', error);
-          return;
-        }
-        
-        // Maintain order of products as in the products array
-        const orderedProducts = products.map(id => 
-          data?.find(product => product.id === id)
-        ).filter(Boolean) as Product[];
-        
-        setComparedProducts(orderedProducts);
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchProducts();
-  }, [products, mounted]);
-  
   // Handle click outside to collapse
   useEffect(() => {
     if (!mounted) return;
@@ -77,7 +38,13 @@ const ComparisonDisplay = () => {
   const toggleExpanded = () => setIsExpanded(!isExpanded);
   
   // Check if we can add more products
-  const canAddMoreProducts = products.length < 4; // Based on MAX_COMPARISON_PRODUCTS from context
+  const canAddMoreProducts = useMemo(() => productIds.length < 4, [productIds]);
+  
+  // Generate compare URL
+  const compareUrl = useMemo(() => 
+    productIds.length > 1 ? `/compare/${productIds.join(',')}` : '#',
+    [productIds]
+  );
   
   // Only render on client-side to avoid hydration mismatch
   if (!mounted) {
@@ -85,7 +52,7 @@ const ComparisonDisplay = () => {
   }
   
   // Don't render anything if comparison is empty
-  if (products.length === 0) {
+  if (productIds.length === 0) {
     return null;
   }
 
@@ -98,7 +65,7 @@ const ComparisonDisplay = () => {
               <span className="text-sm">Loading products...</span>
             </div>
           ) : (
-            comparedProducts.map((product) => (
+            products.map((product) => (
               <div
                 key={product.id}
                 className="w-full max-w-md flex items-center justify-between bg-white rounded-full shadow-lg px-4 py-2"
@@ -155,10 +122,10 @@ const ComparisonDisplay = () => {
             </Link>
             
             {/* Compare Page Button */}
-            <Link href={products.length > 1 ? `/compare/${products.join(',')}` : '#'}>
+            <Link href={compareUrl}>
               <button
-                disabled={products.length < 2}
-                className={`w-auto h-10 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50 px-4 ${products.length < 2 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={productIds.length < 2}
+                className={`w-auto h-10 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50 px-4 ${productIds.length < 2 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Compare Products"
                 aria-label="Compare products"
               >
@@ -176,7 +143,7 @@ const ComparisonDisplay = () => {
         >
           <Scale size={16} className="mr-1" />
           <div className="flex -space-x-2">
-            {comparedProducts.slice(0, 3).map((product) => (
+            {products.slice(0, 3).map((product) => (
               <div key={product.id} className={`${ITEM_AVATAR_CLASSES} border-2 border-white`}>
                 {product.image_url ? (
                   <Image 
@@ -191,13 +158,13 @@ const ComparisonDisplay = () => {
                 )}
               </div>
             ))}
-            {products.length > 3 && (
+            {productIds.length > 3 && (
               <div className={`${ITEM_AVATAR_CLASSES} border-2 border-white bg-gray-100`}>
-                <span className="text-xs">+{products.length - 3}</span>
+                <span className="text-xs">+{productIds.length - 3}</span>
               </div>
             )}
           </div>
-          <span className="ml-1 text-sm font-medium">{products.length}</span>
+          <span className="ml-1 text-sm font-medium">{productIds.length}</span>
         </button>
       )}
     </div>

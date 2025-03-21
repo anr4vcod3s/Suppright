@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ComparisonProvider, useComparison } from '@/context/context';
 import ComparisonTable from '@/components/ComparisonTable';
-import { supabase } from '@/lib/supabase/client';
-import { Product } from '@/lib/schemas';
 
 const ComparePageContent = () => {
   const params = useParams();
@@ -25,22 +23,9 @@ const ComparePageContent = () => {
     }
   }, [addProduct, clearProducts, productsParam]);
 
-  const fetchProducts = useCallback(async (ids: string[]): Promise<Product[]> => {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, nutritional_info(*), amino_profiles(*)')
-      .in('id', ids);
-
-    if (error) {
-      console.error('Error fetching products: ', error);
-      return [];
-    }
-    return data;
-  }, []);
-
   return (
     <div className="pt-20 px-4">
-      <ComparisonTable fetchProducts={fetchProducts} />
+      <ComparisonTable />
     </div>
   );
 };
