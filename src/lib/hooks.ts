@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useComparison, useComparisonProducts } from '@/context/context';
 import { supabase } from '@/lib/supabase/client';
-import { Product, NutritionalInfo, ProductFeatures, DietaryInfo, ProductValueMetrics } from '@/lib/schemas';
+import { Product, NutritionalInfo, ProductFeatures, DietaryInfo, ProductValueMetrics, AminoProfile } from '@/lib/schemas';
 
 export interface ComparisonProductData extends Product {
   nutritionalInfo?: NutritionalInfo;
   features?: ProductFeatures;
   dietaryInfo?: DietaryInfo;
   valueMetrics?: ProductValueMetrics;
+  amino_profile?: AminoProfile; // Added amino_profile property
 }
 
 // Error interface for serializable errors
@@ -35,36 +36,11 @@ export const useComparisonData = () => {
     const fetchDetailedInfo = async () => {
       setIsDetailedLoading(true);
       setDetailedError(null);
-      
+    
       try {
-        // Create an array to collect all data
         const enhancedProducts: ComparisonProductData[] = [...products];
-        
-        // Fetch nutritional info
-        const { data: nutritionalData, error: nutritionalError } = await supabase
-          .from('nutritional_info')
-          .select('*')
-          .in('product_id', productIds);
-          
-        if (nutritionalError) throw new Error(`Error fetching nutritional info: ${nutritionalError.message}`);
-        
-        // Fetch product features
-        const { data: featuresData, error: featuresError } = await supabase
-          .from('product_features')
-          .select('*')
-          .in('product_id', productIds);
-          
-        if (featuresError) throw new Error(`Error fetching product features: ${featuresError.message}`);
-        
-        // Fetch dietary info
-        const { data: dietaryData, error: dietaryError } = await supabase
-          .from('dietary_info')
-          .select('*')
-          .in('product_id', productIds);
-          
-        if (dietaryError) throw new Error(`Error fetching dietary info: ${dietaryError.message}`);
-        
-        // Fetch value metrics
+    
+        // Fetch value metrics data
         const { data: valueMetricsData, error: valueMetricsError } = await supabase
           .from('product_value_metrics')
           .select('*')
@@ -72,35 +48,32 @@ export const useComparisonData = () => {
           
         if (valueMetricsError) throw new Error(`Error fetching value metrics: ${valueMetricsError.message}`);
         
+        // Fetch amino profile data
+        const { data: aminoProfileData, error: aminoProfileError } = await supabase
+          .from('amino_profiles')
+          .select('*')
+          .in('product_id', productIds);
+          
+        if (aminoProfileError) throw new Error(`Error fetching amino profiles: ${aminoProfileError.message}`);
+    
         // Map all data to respective products
         enhancedProducts.forEach((product, index) => {
-          // Find related data for this product
-          const nutritionalInfo = nutritionalData?.find(item => item.product_id === product.id) || undefined;
-          const features = featuresData?.find(item => item.product_id === product.id) || undefined;
-          const dietaryInfo = dietaryData?.find(item => item.product_id === product.id) || undefined;
           const valueMetrics = valueMetricsData?.find(item => item.product_id === product.id) || undefined;
+          const aminoProfile = aminoProfileData?.find(item => item.product_id === product.id) || undefined;
           
-          // Enhance the product with additional data
+          // Assign both value metrics and amino profile data
           enhancedProducts[index] = {
             ...product,
-            nutritionalInfo,
-            features,
-            dietaryInfo,
-            valueMetrics
+            valueMetrics,
+            amino_profile: aminoProfile,
           };
         });
-        
-        // Update state with enhanced products (maintaining order from productIds)
-        const orderedDetailedProducts = productIds
-          .map(id => enhancedProducts.find(product => product.id === id))
-          .filter(Boolean) as ComparisonProductData[];
-          
-        setDetailedProducts(orderedDetailedProducts);
+    
+        setDetailedProducts(enhancedProducts);
       } catch (err) {
         console.error('Error fetching detailed product info:', err);
-        // Create a serializable error object instead of passing the Error instance
         setDetailedError({
-          message: err instanceof Error ? err.message : 'Unknown error fetching detailed product info'
+          message: err instanceof Error ? err.message : 'Unknown error fetching detailed product info',
         });
       } finally {
         setIsDetailedLoading(false);

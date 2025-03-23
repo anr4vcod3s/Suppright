@@ -1,5 +1,3 @@
-
-// Fixed HeroComponent.tsx
 'use client';
 import React, { useState } from 'react';
 import { BackgroundBeams } from '@/components/ui/background-beams';
@@ -7,7 +5,8 @@ import { SearchComponent } from '@/components/SearchComponent';
 import { Product } from '@/lib/schemas';
 
 const HeroComponent = () => {
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 
   const handleProductSelect = (product: Product) => {
     setSelectedProducts(prev => {
@@ -33,13 +32,6 @@ const HeroComponent = () => {
         Find the best products tailored just for you
       </p>
       <SearchComponent onProductSelect={handleProductSelect} />
-      
-      {/* Optionally display selected products */}
-      {selectedProducts.length > 0 && (
-        <div className="mt-6">
-          <p className="text-sm text-black">Selected products: {selectedProducts.length}</p>
-        </div>
-      )}
     </div>
   );
 };

@@ -57,9 +57,9 @@ const ComparisonDisplay = () => {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 comparison-container z-50">
+    <div className="fixed bottom-8 items-center comparison-container z-50">
       {isExpanded ? (
-        <div className="flex flex-col gap-3 items-end">
+        <div className="flex flex-col gap-3 items-center">
           {isLoading ? (
             <div className="w-full max-w-md flex items-center justify-center bg-white rounded-full shadow-lg px-4 py-2">
               <span className="text-sm">Loading products...</span>
@@ -68,7 +68,7 @@ const ComparisonDisplay = () => {
             products.map((product) => (
               <div
                 key={product.id}
-                className="w-full max-w-md flex items-center justify-between bg-white rounded-full shadow-lg px-4 py-2"
+                className="w-full md:w-80 flex items-center justify-between bg-white rounded-full shadow-lg px-4 py-2"
               >
                 <div className="flex items-center gap-3">
                   <div className={ITEM_AVATAR_CLASSES}>
@@ -85,8 +85,8 @@ const ComparisonDisplay = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{product.name}</span>
-                    <span className="text-xs text-gray-500">{product.brand}</span>
+                    <span className="text-sm font-medium truncate max-w-32 md:max-w-48">{product.name}</span>
+                    <span className="text-xs text-gray-500 truncate max-w-32 md:max-w-48">{product.brand}</span>
                   </div>
                 </div>
                 <button
@@ -138,11 +138,10 @@ const ComparisonDisplay = () => {
       ) : (
         <button
           onClick={toggleExpanded}
-          className="flex items-center gap-1 bg-white rounded-full shadow-lg px-3 py-2"
+          className="flex items-center gap-2 bg-white rounded-full shadow-lg px-3 py-2"
           aria-label="View comparison items"
         >
-          <Scale size={16} className="mr-1" />
-          <div className="flex -space-x-2">
+          <div className="flex justify-between items-center space-x-2">
             {products.slice(0, 3).map((product) => (
               <div key={product.id} className={`${ITEM_AVATAR_CLASSES} border-2 border-white`}>
                 {product.image_url ? (
@@ -164,7 +163,6 @@ const ComparisonDisplay = () => {
               </div>
             )}
           </div>
-          <span className="ml-1 text-sm font-medium">{productIds.length}</span>
         </button>
       )}
     </div>

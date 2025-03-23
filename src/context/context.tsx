@@ -44,84 +44,88 @@ const isValidUUID = (id: string): boolean => {
 // Provider for product IDs
 export const ComparisonIDsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [productIds, setProductIds] = useState<string[]>([]);
-  const [isClientSide, setIsClientSide] = useState(false);
+  // Use a state to track if we're in the browser
+  const [hasMounted, setHasMounted] = useState(false);
 
-  // Initialize from localStorage
+  // Use useEffect to set hasMounted to true after the component mounts
   useEffect(() => {
-    setIsClientSide(true);
-    try {
-      const savedComparison = localStorage.getItem(STORAGE_KEY);
-      if (savedComparison) {
-        const parsedProducts = JSON.parse(savedComparison);
-        if (Array.isArray(parsedProducts)) {
-          // Validate each ID is a proper UUID
-          const validIds = parsedProducts
-            .filter(id => typeof id === 'string' && isValidUUID(id))
-            .slice(0, MAX_COMPARISON_PRODUCTS);
-          
-          setProductIds(validIds);
-        }
-      }
-    } catch (e) {
-      console.error('Error parsing saved comparison data', e);
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    setHasMounted(true);
   }, []);
+
+  // Only initialize from localStorage after component has mounted
+  useEffect(() => {
+    if (hasMounted && typeof window !== 'undefined') {
+      try {
+        const savedComparison = localStorage.getItem(STORAGE_KEY);
+        if (savedComparison) {
+          const parsedProducts = JSON.parse(savedComparison);
+          if (Array.isArray(parsedProducts)) {
+            // Validate each ID is a proper UUID
+            const validIds = parsedProducts
+              .filter(id => typeof id === 'string' && isValidUUID(id))
+              .slice(0, MAX_COMPARISON_PRODUCTS);
+            
+            setProductIds(validIds);
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing saved comparison data', e);
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, [hasMounted]);
 
   // Save to localStorage when productIds change
   useEffect(() => {
-    if (isClientSide && typeof window !== 'undefined') {
+    if (hasMounted && typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(productIds));
     }
-  }, [productIds, isClientSide]);
+  }, [productIds, hasMounted]);
 
   // Add product (memoized)
-  // Fix for context.tsx - addProduct function
-
-// Add product (memoized)
-const addProduct = useCallback((productId: string) => {
-  // First decode the URL-encoded string
-  const decodedId = decodeURIComponent(productId);
-  
-  // Handle comma-separated UUIDs by splitting and validating each
-  if (decodedId.includes(',')) {
-    const ids = decodedId.split(',');
-    ids.forEach(id => {
-      const trimmedId = id.trim();
-      if (isValidUUID(trimmedId)) {
-        setProductIds(prevProducts => {
-          if (prevProducts.includes(trimmedId) || prevProducts.length >= MAX_COMPARISON_PRODUCTS) {
-            return prevProducts;
-          }
-          return [...prevProducts, trimmedId];
-        });
-      } else {
-        console.error('Invalid UUID format in comma-separated list:', trimmedId);
+  const addProduct = useCallback((productId: string) => {
+    // First decode the URL-encoded string
+    const decodedId = decodeURIComponent(productId);
+    
+    // Handle comma-separated UUIDs by splitting and validating each
+    if (decodedId.includes(',')) {
+      const ids = decodedId.split(',');
+      ids.forEach(id => {
+        const trimmedId = id.trim();
+        if (isValidUUID(trimmedId)) {
+          setProductIds(prevProducts => {
+            if (prevProducts.includes(trimmedId) || prevProducts.length >= MAX_COMPARISON_PRODUCTS) {
+              return prevProducts;
+            }
+            return [...prevProducts, trimmedId];
+          });
+        } else {
+          console.error('Invalid UUID format in comma-separated list:', trimmedId);
+        }
+      });
+      return;
+    }
+    
+    // Original single UUID validation
+    if (!isValidUUID(decodedId)) {
+      console.error('Invalid UUID format:', decodedId);
+      return;
+    }
+    
+    setProductIds(prevProducts => {
+      // Return same array if no change to prevent unnecessary rerenders
+      if (prevProducts.includes(decodedId)) {
+        console.log('Product already in comparison:', decodedId);
+        return prevProducts;
       }
+      if (prevProducts.length >= MAX_COMPARISON_PRODUCTS) {
+        console.log('Maximum products reached');
+        return prevProducts;
+      }
+      console.log('Adding product to comparison:', decodedId);
+      return [...prevProducts, decodedId];
     });
-    return;
-  }
-  
-  // Original single UUID validation
-  if (!isValidUUID(decodedId)) {
-    console.error('Invalid UUID format:', decodedId);
-    return;
-  }
-  
-  setProductIds(prevProducts => {
-    // Return same array if no change to prevent unnecessary rerenders
-    if (prevProducts.includes(decodedId)) {
-      console.log('Product already in comparison:', decodedId);
-      return prevProducts;
-    }
-    if (prevProducts.length >= MAX_COMPARISON_PRODUCTS) {
-      console.log('Maximum products reached');
-      return prevProducts;
-    }
-    console.log('Adding product to comparison:', decodedId);
-    return [...prevProducts, decodedId];
-  });
-}, []);
+  }, []);
 
   // Remove product (memoized)
   const removeProduct = useCallback((productId: string) => {
@@ -166,20 +170,40 @@ export const ComparisonProductsProvider: React.FC<{ children: React.ReactNode }>
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [cachedProductDetails, setCachedProductDetails] = useState<Record<string, Product>>({});
+
+  // Use useEffect to set hasMounted to true after the component mounts
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Fetch product details when IDs change
   useEffect(() => {
-    if (productIds.length === 0) {
+    if (!hasMounted || productIds.length === 0) {
       setProducts([]);
       return;
     }
     
+    // First check which products we already have cached
+    const productsToFetch = productIds.filter(id => !cachedProductDetails[id]);
+    
+    // If all products are already cached, use the cache
+    if (productsToFetch.length === 0) {
+      const orderedProducts = productIds
+        .map(id => cachedProductDetails[id])
+        .filter(Boolean) as Product[];
+      
+      setProducts(orderedProducts);
+      return;
+    }
+    
+    // Otherwise fetch the missing products
     setIsLoading(true);
     setError(null);
     
     const fetchProducts = async () => {
       try {
-        // Ensure productIds is an array and contains only valid UUIDs
         const validProductIds = productIds.filter(id => typeof id === 'string' && isValidUUID(id));
         
         if (validProductIds.length === 0) {
@@ -190,18 +214,26 @@ export const ComparisonProductsProvider: React.FC<{ children: React.ReactNode }>
         
         const { data, error } = await supabase
           .from('products')
-          .select('id, name, brand, image_url')
+          .select(`
+            id, name, brand, image_url, 
+            serving_size, servings_per_container,
+            nutritional_info: nutritional_info(*),
+            value_metrics: product_value_metrics(*),
+            features: product_features(*),
+            dietary_info: dietary_info(*),
+            amino_profile: amino_profiles(*)
+          `)
           .in('id', validProductIds);
-        
-        if (error) {
-          throw new Error(`Error fetching products: ${error.message}`);
-        }
-        
+    
+        if (error) throw new Error(`Error fetching products: ${error.message}`);
+    
+        // Update cache with fetched products
+        const newCache = { ...cachedProductDetails };
+        data?.forEach(product => { newCache[product.id] = product as Product; });
+        setCachedProductDetails(newCache);
+    
         // Maintain order of products as in the productIds array
-        const orderedProducts = validProductIds
-          .map(id => data?.find(product => product.id === id))
-          .filter(Boolean) as Product[];
-        
+        const orderedProducts = productIds.map(id => newCache[id]).filter(Boolean) as Product[];
         setProducts(orderedProducts);
       } catch (err) {
         console.error('Error:', err);
@@ -212,7 +244,7 @@ export const ComparisonProductsProvider: React.FC<{ children: React.ReactNode }>
     };
     
     fetchProducts();
-  }, [productIds]);
+  }, [productIds, hasMounted, cachedProductDetails]);
 
   // Memoize context value
   const contextValue = useMemo(() => ({

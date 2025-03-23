@@ -1,57 +1,39 @@
 import React from 'react';
-import ProductCard from './ProductCard';
-import { Product } from '@/lib/schemas';
+import { X } from 'lucide-react';
+import { ComparisonProductData } from '@/lib/hooks';
+import ProductCard from '@/components/ProductCard';
 
 interface ComparisonColumnProps {
-  product: Product;
-  removeItem: (id: string) => void;
-  metrics: string[];
+  product: ComparisonProductData;
+  onRemove: (productId: string) => void;
 }
 
-const ComparisonColumn: React.FC<ComparisonColumnProps> = ({ 
-  product, 
-  removeItem,
-  metrics
-}) => {
+const ComparisonColumn: React.FC<ComparisonColumnProps> = ({ product, onRemove }) => {
   return (
-    <div className="flex flex-col border-r border-gray-200">
-      {/* Header */}
-      <div className="p-2 flex justify-between items-center">
-        <span className="text-lg font-medium">{product.name}</span>
-        <button 
-          onClick={() => removeItem(product.id)}
-          className="text-gray-400 hover:text-gray-600"
-          aria-label="Remove from comparison"
-        >
-          X
-        </button>
+    <div className="relative h-full bg-white">
+      {/* Remove Button */}
+      <button 
+        onClick={() => onRemove(product.id)} 
+        className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow-sm text-gray-400 hover:text-gray-700" 
+        title="Remove"
+        aria-label={`Remove ${product.name} from comparison`}
+      >
+        <X size={16} />
+      </button>
+      
+      {/* Product Card (for image and basic info) */}
+      <div className="p-4 border-b border-gray-200">
+        <ProductCard product={product} />
       </div>
       
-      {/* Product Card */}
-      <ProductCard product={product} />
-      
-      {/* Metric Rows */}
-      {metrics.map((metric) => {
-        const value = getNestedProperty(product, metric);
-        
-        return (
-          <div key={metric} className="p-2 border-t border-gray-100">
-            {value !== undefined ? value : '—'}
-          </div>
-        );
-      })}
+      {/* Additional details that might be shown in the header */}
+      {product.brand && (
+        <div className="px-4 pb-2 text-sm text-gray-500">
+          {product.brand}
+        </div>
+      )}
     </div>
   );
 };
 
-// Helper function to get nested properties
-function getNestedProperty<T>(obj: T, path: string): string | number | undefined {
-    return path.split('.').reduce<unknown>((current, key) => {
-      if (current && typeof current === 'object' && key in current) {
-        return (current as Record<string, unknown>)[key];
-      }
-      return undefined;
-    }, obj) as string | number | undefined;
-  }
-  
 export default ComparisonColumn;
