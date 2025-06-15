@@ -9,6 +9,19 @@ const percentageSchema = z.number().min(0).max(100);
 const booleanSchema = z.boolean();
 const textArraySchema = z.array(z.string());
 
+// ---------- Certifications Schema (moved up before ProductSchema) ----------
+
+// Certifications Table Schema
+export const CertificationSchema = z.object({
+  id: uuidSchema,
+  name: z.string().min(1).max(100),
+  image_url: z.string().url().optional(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
+});
+
+export type Certification = z.infer<typeof CertificationSchema>;
+
 // ---------- Core Tables Schemas ----------
 
 // Products Table Schema
@@ -17,11 +30,13 @@ export const ProductSchema = z.object({
   name: z.string().min(1).max(255),
   brand: z.string().min(1).max(100),
   description: z.string().optional(),
+  slug: z.string(),
   image_url: z.string().url().optional(),
   serving_size: z.number().positive(),
   servings_per_container: z.number().positive(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
+  certifications: z.array(CertificationSchema).optional(),
 });
 
 export type Product = z.infer<typeof ProductSchema>;
@@ -164,17 +179,6 @@ export const AdditionalCompoundsSchema = z.object({
 
 export type AdditionalCompounds = z.infer<typeof AdditionalCompoundsSchema>;
 
-// Certifications Table Schema
-export const CertificationSchema = z.object({
-  id: uuidSchema,
-  name: z.string().min(1).max(100),
-  image_url: z.string().url().optional(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
-});
-
-export type Certification = z.infer<typeof CertificationSchema>;
-
 // Product Certifications Table Schema (junction table)
 export const ProductCertificationSchema = z.object({
   product_id: uuidSchema,
@@ -303,6 +307,10 @@ export type ProductCompleteInfo = z.infer<typeof ProductCompleteInfoSchema>;
 // Product Value Metrics View Schema
 export const ProductValueMetricsSchema = z.object({
   product_id: uuidSchema,
+  size_kg: weightSchema,
+  price: priceSchema,
+  affiliate_url: z.string().url().optional(),
+  retailer_name: z.string().optional(),
   price_per_serving: priceSchema,
   price_per_kg: priceSchema,
   price_per_protein_g: priceSchema,
@@ -352,3 +360,9 @@ export const UpdateProductSchema = ProductSchema.partial().omit({
   created_at: true,
   updated_at: true,
 });
+
+// Add to your Product schema or create extended type
+export interface ExtendedProduct extends Product {
+  additional_compounds?: Record<string, number>;
+  flavors?: string[];
+}

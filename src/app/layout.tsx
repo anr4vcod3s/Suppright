@@ -5,6 +5,7 @@ import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ComparisonProvider } from '@/context/context';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Create a client
@@ -18,7 +19,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Header />
             <main>
               {children}
-            </main>
+            </main> 
+            <Footer />
           </ComparisonProvider>
         </QueryClientProvider>
       </body>

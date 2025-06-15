@@ -55,20 +55,20 @@ export const BackgroundBeams = React.memo(
       "M-58 -557C-58 -557 10 -152 474 -25C938 102 1006 507 1006 507",
       "M-51 -565C-51 -565 17 -160 481 -33C945 94 1013 499 1013 499",
       "M-44 -573C-44 -573 24 -168 488 -41C952 86 1020 491 1020 491",
-      "M-37 -581C-37 -581 31 -176 495 -49C959 78 1027 483 1027 483"
+      "M-37 -581C-37 -581 31 -176 495 -49C959 78 1027 483 1027 483",
     ];
 
     const getBeamColor = (index: number): string => {
       if (index < 16) return "#138808"; // Saffron
-      if (index >= 16 && index < 33) return "#FFFFFF"; // White
+      if (index >= 16 && index < 33) return "#FFFFFF"//"#60a5fa"  White
       return "#FF9933"; // Green
     };
-    
+
     return (
       <div
         className={cn(
           "absolute h-full w-full inset-0 [mask-size:40px] [mask-repeat:no-repeat] flex items-center justify-center",
-          className
+          className,
         )}
       >
         <svg
@@ -110,7 +110,7 @@ export const BackgroundBeams = React.memo(
                   x1: ["0%", "130%"],
                   x2: ["0%", "130%"],
                   y1: ["0%", "150%"],
-                  y2: ["0%", `${120 + Math.random() * 10 }%`],
+                  y2: ["0%", `${120 + Math.random() * 10}%`],
                 }}
                 transition={{
                   duration: Math.random() * 10 + 10,
@@ -122,7 +122,11 @@ export const BackgroundBeams = React.memo(
                 <stop stopColor={getBeamColor(index)} stopOpacity="0" />
                 <stop stopColor={getBeamColor(index)} />
                 <stop offset="32.5%" stopColor={getBeamColor(index)} />
-                <stop offset="100%" stopColor={getBeamColor(index)} stopOpacity="0" />
+                <stop
+                  offset="100%"
+                  stopColor={getBeamColor(index)}
+                  stopOpacity="0"
+                />
               </motion.linearGradient>
             ))}
             <radialGradient
@@ -141,7 +145,7 @@ export const BackgroundBeams = React.memo(
         </svg>
       </div>
     );
-  }
+  },
 );
 
 BackgroundBeams.displayName = "BackgroundBeams";

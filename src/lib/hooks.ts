@@ -1,104 +1,63 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useComparison, useComparisonProducts } from '@/context/context';
-import { supabase } from '@/lib/supabase/client';
-import { Product, NutritionalInfo, ProductFeatures, DietaryInfo, ProductValueMetrics, AminoProfile } from '@/lib/schemas';
+// lib/hooks.ts
 
-export interface ComparisonProductData extends Product {
-  nutritionalInfo?: NutritionalInfo;
-  features?: ProductFeatures;
-  dietaryInfo?: DietaryInfo;
-  valueMetrics?: ProductValueMetrics;
-  amino_profile?: AminoProfile; // Added amino_profile property
+export interface ProductSizeDetail {
+  id: string;
+  size_kg: number;
+  price: number;
+  is_popular?: boolean | null;
+  affiliate_link?: string | null;
+  retailer_name?: string | null;
 }
 
-// Error interface for serializable errors
-export interface SerializableError {
-  message: string;
-  code?: string;
+interface Certification {
+  id: string;
+  name: string;
+  image_url?: string | null;
 }
 
-// Enhanced hook that fetches all required data for comparison
-export const useComparisonData = () => {
-  const { productIds, removeProduct, clearProducts } = useComparison();
-  const { products, isLoading, error } = useComparisonProducts();
-  
-  const [detailedProducts, setDetailedProducts] = useState<ComparisonProductData[]>([]);
-  const [isDetailedLoading, setIsDetailedLoading] = useState(false);
-  const [detailedError, setDetailedError] = useState<SerializableError | null>(null);
-
-  // Fetch detailed product information when basic products are loaded
-  useEffect(() => {
-    if (products.length === 0 || isLoading) {
-      setDetailedProducts([]);
-      return;
-    }
-    
-    const fetchDetailedInfo = async () => {
-      setIsDetailedLoading(true);
-      setDetailedError(null);
-    
-      try {
-        const enhancedProducts: ComparisonProductData[] = [...products];
-    
-        // Fetch value metrics data
-        const { data: valueMetricsData, error: valueMetricsError } = await supabase
-          .from('product_value_metrics')
-          .select('*')
-          .in('product_id', productIds);
-          
-        if (valueMetricsError) throw new Error(`Error fetching value metrics: ${valueMetricsError.message}`);
-        
-        // Fetch amino profile data
-        const { data: aminoProfileData, error: aminoProfileError } = await supabase
-          .from('amino_profiles')
-          .select('*')
-          .in('product_id', productIds);
-          
-        if (aminoProfileError) throw new Error(`Error fetching amino profiles: ${aminoProfileError.message}`);
-    
-        // Map all data to respective products
-        enhancedProducts.forEach((product, index) => {
-          const valueMetrics = valueMetricsData?.find(item => item.product_id === product.id) || undefined;
-          const aminoProfile = aminoProfileData?.find(item => item.product_id === product.id) || undefined;
-          
-          // Assign both value metrics and amino profile data
-          enhancedProducts[index] = {
-            ...product,
-            valueMetrics,
-            amino_profile: aminoProfile,
-          };
-        });
-    
-        setDetailedProducts(enhancedProducts);
-      } catch (err) {
-        console.error('Error fetching detailed product info:', err);
-        setDetailedError({
-          message: err instanceof Error ? err.message : 'Unknown error fetching detailed product info',
-        });
-      } finally {
-        setIsDetailedLoading(false);
-      }
-    };
-    
-    fetchDetailedInfo();
-  }, [products, productIds, isLoading]);
-  
-  // Calculate if the comparison can accept more products
-  const canAddMore = useMemo(() => productIds.length < 4, [productIds.length]);
-  
-  // Return combined loading state
-  const combinedLoading = isLoading || isDetailedLoading;
-  
-  // Create serializable error if needed
-  const combinedError = error ? { message: error.message } : detailedError;
-  
-  return {
-    products: detailedProducts,
-    isLoading: combinedLoading,
-    error: combinedError,
-    removeProduct,
-    clearProducts,
-    canAddMore,
-    productIds
-  };
-};
+export interface ComparisonProductData {
+  id: string;
+  name: string;
+  brand: string;
+  description?: string | null;
+  slug: string; 
+  image_url?: string | null;
+  serving_size: number;
+  servings_per_container: number;
+  product_created_at?: string | Date | null;
+  product_updated_at?: string | Date | null;
+  calories?: number | null;
+  protein_g?: number | null;
+  carbohydrates_g?: number | null;
+  fats_g?: number | null;
+  cholesterol_mg?: number | null;
+  protein_percentage?: number | null;
+  protein_macro_percentage?: number | null;
+  carb_macro_percentage?: number | null;
+  fat_macro_percentage?: number | null;
+  leucine_g?: number | null;
+  isoleucine_g?: number | null;
+  valine_g?: number | null;
+  histidine_g?: number | null;
+  lysine_g?: number | null;
+  methionine_g?: number | null;
+  phenylalanine_g?: number | null;
+  threonine_g?: number | null;
+  tryptophan_g?: number | null;
+  total_bcaas_g?: number | null;
+  total_eaas_g?: number | null;
+  protein_source?: string | null;
+  filtration_process?: string | null;
+  gluten_free?: boolean | null;
+  soy_free?: boolean | null;
+  vegetarian?: boolean | null;
+  vegan?: boolean | null;
+  keto_friendly?: boolean | null;
+  allergens_list?: string[] | null;
+  price_per_protein_g?: number | null;
+  price_per_serving?: number | null;
+  flavors_list?: string[] | null;
+  additional_compounds_map?: Record<string, string | number> | null;
+  product_specific_certifications?: Certification[] | null;
+  product_sizes_details?: ProductSizeDetail[] | null;
+}

@@ -1,37 +1,71 @@
-import React from 'react';
-import { X } from 'lucide-react';
-import { ComparisonProductData } from '@/lib/hooks';
-import ProductCard from '@/components/ProductCard';
+// components/ComparisonColumn.tsx
+import React from "react";
+import { X, AlertTriangle } from "lucide-react";
+import { ComparisonProductData } from "@/lib/hooks";
+import ProductCard from "./ProductCard";
 
 interface ComparisonColumnProps {
-  product: ComparisonProductData;
+  product?: ComparisonProductData | null;
   onRemove: (productId: string) => void;
+  className?: string;
+  style?: React.CSSProperties; // Added style prop
 }
 
-const ComparisonColumn: React.FC<ComparisonColumnProps> = ({ product, onRemove }) => {
+const ComparisonColumn: React.FC<ComparisonColumnProps> = ({
+  product,
+  onRemove,
+  className = "",
+  style = {}, // Destructure style prop
+}) => {
+  const baseClasses =
+    "comparison-grid-cell flex flex-col items-center justify-center";
+
+  if (!product || !product.id || !product.name || !product.brand) {
+    return (
+      <div
+        className={`${baseClasses} ${className} py-4 px-3 bg-white/5 dark:bg-black/10 backdrop-blur-sm text-center h-full min-h-[200px] rounded-lg`}
+        style={style} // Apply style prop
+      >
+        <AlertTriangle className="h-10 w-10 text-amber-500 dark:text-amber-400 mb-3" />
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Product data unavailable.
+        </p>
+        {product?.id && (
+          <button
+            onClick={() => onRemove(product.id)}
+            className="mt-3 text-xs text-red-500 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+          >
+            Remove Product
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const productCardDataForHeader = {
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    image_url: product.image_url,
+    certifications: product.product_specific_certifications || [],
+    product_sizes: product.product_sizes_details || [],
+  };
+
   return (
-    <div className="relative h-full bg-white">
-      {/* Remove Button */}
-      <button 
-        onClick={() => onRemove(product.id)} 
-        className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow-sm text-gray-400 hover:text-gray-700" 
-        title="Remove"
+    <div
+      className={`${baseClasses} ${className} relative justify-start p-2 pt-3`}
+      style={style} // Apply style prop
+    >
+      <button
+        onClick={() => onRemove(product.id)}
+        className="absolute top-2.5 right-2.5 rounded-full p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 bg-white/20 dark:bg-black/20 hover:bg-white/40 dark:hover:bg-black/40 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300 z-20 group"
         aria-label={`Remove ${product.name} from comparison`}
       >
-        <X size={16} />
+        <X className="h-4 w-4 group-hover:scale-110 transition-transform" />
       </button>
-      
-      {/* Product Card (for image and basic info) */}
-      <div className="p-4 border-b border-gray-200">
-        <ProductCard product={product} />
+      <div className="w-full flex-grow flex items-start justify-center">
+        <ProductCard product={productCardDataForHeader} />
       </div>
-      
-      {/* Additional details that might be shown in the header */}
-      {product.brand && (
-        <div className="px-4 pb-2 text-sm text-gray-500">
-          {product.brand}
-        </div>
-      )}
     </div>
   );
 };

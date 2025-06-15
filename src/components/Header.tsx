@@ -1,20 +1,10 @@
-// Fixed Header.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SearchComponent } from '@/components/SearchComponent';
 import { Product } from '@/lib/schemas';
-
-const transition = {
-  type: 'spring',
-  mass: 0.5,
-  damping: 11.5,
-  stiffness: 100,
-  restDelta: 0.001,
-  restSpeed: 0.001,
-};
+import { Search } from 'lucide-react';
 
 const Header = () => {
   const pathname = usePathname();
@@ -25,66 +15,61 @@ const Header = () => {
     const handleScroll = () => {
       const currentScrollPos = window.pageYOffset;
       const isScrollingDown = prevScrollPos < currentScrollPos;
-      const isScrolledPastThreshold = currentScrollPos > 100;
-      
-      setVisible(!isScrollingDown || !isScrolledPastThreshold);
+
+      setVisible(!isScrollingDown);
       setPrevScrollPos(currentScrollPos);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [prevScrollPos]);
 
-  // Handler for search component
   const handleProductSelect = (product: Product) => {
-    // Add your product selection logic here
     console.log('Selected product:', product);
-    // You might want to redirect to product page or add to comparison
   };
 
+  const isComparePage = pathname === '/compare' || pathname.startsWith('/compare/');
+
   return (
-    <div className="fixed top-2 left-0 w-full flex justify-center px-4 z-50 transition-all duration-300" 
-         style={{ transform: visible ? 'translateY(0)' : 'translateY(-100%)' }}>
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={transition}
-        className="w-full max-w-5xl mt-2 px-4 sm:px-8 py-4 bg-white dark:bg-black rounded-full border border-black/[0.2] dark:border-white/[0.2] shadow-input flex items-center justify-between"
+    <div
+      className="fixed top-2 left-0 w-full flex justify-center px-4 z-50 transition-all duration-100"
+      style={{ transform: visible ? 'translateY(0)' : 'translateY(-100%)' }}
+    >
+      <header
+        className="
+          w-full max-w-[90rem] mt-1 px-4 sm:px-8 py-3 
+          bg-white text-black 
+          rounded-full 
+          border border-gray-200 
+          shadow-md 
+          flex items-center justify-between
+        "
       >
         {/* Logo */}
-        <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
-          <Link href="/">
-            <div className="text-2xl font-bold italic cursor-pointer text-black dark:text-white">
-              SUPPCHECK
-            </div>
-          </Link>
-        </motion.div>
+        <Link href="/">
+          <div className="text-2xl font-bold italic cursor-pointer">
+            SUPPCHECK
+          </div>
+        </Link>
 
-        {/* Search or Scroll */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={transition}
-        >
-          {pathname === '/compare' ? (
-            <SearchComponent onProductSelect={handleProductSelect} />
+        {/* Search Component or Magnifying Glass */}
+        <div className="flex items-center">
+          {isComparePage ? (
+            <div className="w-48 sm:w-64 md:w-72"> {/* Responsive width */}
+              <SearchComponent onProductSelect={handleProductSelect} />
+            </div>
           ) : (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => {
-                const heroSection = document.getElementById('hero');
-                if (heroSection) {
-                  heroSection.scrollIntoView({ behavior: 'smooth' });
-                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="text-lg text-gray-600 dark:text-neutral-200 hover:text-black dark:hover:text-white"
+              className="text-black hover:text-gray-700 p-2"
             >
-              Search
-            </motion.button>
+              <Search size={22} />
+            </button>
           )}
-        </motion.div>
-      </motion.header>
+        </div>
+      </header>
     </div>
   );
 };

@@ -1,0 +1,11 @@
+# public/robots.txt
+
+# Allow all user agents
+User-agent: *
+Allow: /
+
+# Disallow specific paths if needed, e.g., admin panels
+# Disallow: /admin/
+
+# Point to your sitemap
+Sitemap: https://www.yourdomain.com/sitemap.xml

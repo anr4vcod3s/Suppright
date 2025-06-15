@@ -1,54 +1,258 @@
-import React from 'react';
-import Image from 'next/image'; // Import Next.js Image component
-import { Product } from '@/lib/schemas';
+// components/ProductCard.tsx
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import { ProductSizeDetail } from "@/lib/hooks";
 
-interface ProductCardProps {
-  product: Pick<Product, 'id' | 'name' | 'brand' | 'image_url'> & {
-    certifications?: Array<{
-      id: string;
-      image_url: string;
-    }>;
+interface Certification {
+  id: string;
+  name: string;
+  image_url?: string | null;
+}
+
+export interface ProductCardProps {
+  product?: {
+    id: string;
+    name: string;
+    brand: string;
+    image_url?: string | null;
+    certifications?: Certification[];
+    product_sizes?: ProductSizeDetail[] | null;
   };
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  return (
-    <div className="border border-gray-300 rounded-md bg-white p-3">
-      {/* Certifications */}
-      {product.certifications && product.certifications.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {product.certifications.map((cert) => (
-            <Image 
-              key={cert.id} 
-              src={cert.image_url} 
-              alt="Certification"
-              width={24} 
-              height={24} 
-              className="h-6 w-6"
-            />
-          ))}
-        </div>
-      )}
+const PLACEHOLDER_IMAGE_LG = "/api/placeholder/400/400";
+const PLACEHOLDER_CERT_IMAGE = "/api/placeholder/60/60";
 
-      {/* Image */}
-      <div className="h-48 flex items-center justify-center">
-        {product.image_url ? (
-          <Image 
-            src={product.image_url} 
-            alt={product.name} 
-            width={192} // Adjust width
-            height={192} // Adjust height
-            className="max-h-full max-w-full object-contain"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">No image</div>
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
+  const [currentDisplayPrice, setCurrentDisplayPrice] = useState<
+    number | null
+  >(null);
+  const [currentDisplayRetailer, setCurrentDisplayRetailer] = useState<
+    string | null
+  >(null);
+  const [currentAffiliateLink, setCurrentAffiliateLink] = useState<
+    string | null
+  >(null);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sizes = product?.product_sizes;
+    if (sizes && sizes.length > 0) {
+      let initialSizeDetail = sizes.find((s) => s.is_popular);
+      if (!initialSizeDetail) initialSizeDetail = sizes[0];
+      if (initialSizeDetail) {
+        setSelectedSizeId(initialSizeDetail.id);
+        setCurrentDisplayPrice(initialSizeDetail.price);
+        setCurrentDisplayRetailer(initialSizeDetail.retailer_name || null);
+        setCurrentAffiliateLink(initialSizeDetail.affiliate_link || null);
+      }
+    } else {
+      setSelectedSizeId(null);
+      setCurrentDisplayPrice(null);
+      setCurrentDisplayRetailer(null);
+      setCurrentAffiliateLink(null);
+    }
+  }, [product?.product_sizes]);
+
+  const handleSizeChange = (sizeId: string) => {
+    const selectedDetail = product?.product_sizes?.find(
+      (s) => s.id === sizeId,
+    );
+    if (selectedDetail) {
+      setSelectedSizeId(selectedDetail.id);
+      setCurrentDisplayPrice(selectedDetail.price);
+      setCurrentDisplayRetailer(selectedDetail.retailer_name || null);
+      setCurrentAffiliateLink(selectedDetail.affiliate_link || null);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  if (!product) {
+    return (
+      <div className="w-full p-4 text-center text-gray-500 dark:text-gray-400 min-h-[300px] flex items-center justify-center">
+        Product data loading...
+      </div>
+    );
+  }
+
+  const formattedProductName = `${product.brand} ${product.name}`;
+  const availableSizesForDropdown = product.product_sizes || [];
+  const selectedSizeObject = availableSizesForDropdown.find(
+    (s) => s.id === selectedSizeId,
+  );
+
+  return (
+    <div className="w-full h-full flex flex-col text-left ">
+      {/* Name & Brand Section (Fixed Height) */}
+      <div className="p-3 h-28 mb-2 flex flex-col justify-start">
+        <div className="text-sm font-bold italic text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+          {product.brand}
+        </div>
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-white leading-tight line-clamp-3">
+          {product.name}
+        </h3>
+      </div>
+
+      {/* UPDATED: Image Section now has a fixed height (h-52) instead of flex-grow */}
+      <div className="relative w-full h-80 mx-auto bg-gray-200/20 dark:bg-gray-700/20 rounded-xl overflow-hidden group transition-all duration-300">
+        <Image
+          src={product.image_url || PLACEHOLDER_IMAGE_LG}
+          alt={formattedProductName}
+          fill
+          sizes="(max-width: 768px) 33vw, 250px"
+          className="object-contain"
+          priority={true}
+        />
+        <div className="absolute bottom-3 right-3 z-10">
+          {currentDisplayPrice !== null ? (
+            <a
+              href={currentAffiliateLink || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`block rounded-full shadow-lg transition-all duration-300 hover:shadow-xl ${
+                currentAffiliateLink ? "cursor-pointer" : "cursor-default"
+              } group/price`}
+              onClick={(e) => {
+                if (!currentAffiliateLink) e.preventDefault();
+              }}
+            >
+              <div className="bg-gradient-to-br from-blue-500 via-indigo-500  dark:from-blue-400 dark:via-indigo-400  py-2 px-3.5  md:py-2.5 md:px-4 rounded-full group-hover/price:scale-105 transition-transform duration-300">
+                <div className="flex items-center space-x-2">
+                  <span className="font-bold text-white text-base md:text-lg tabular-nums">
+                    ₹
+                    {currentDisplayPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                  </span>
+                  {currentDisplayRetailer && (
+                    <span className="hidden sm:inline text-sm md:text-base text-white/80 truncate max-w-[60px] md:max-w-[80px]">
+                      {currentDisplayRetailer}
+                    </span>
+                  )}
+                  {currentAffiliateLink && (
+                    <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/90" />
+                  )}
+                </div>
+              </div>
+            </a>
+          ) : (
+            <div className="bg-gray-200/50 dark:bg-gray-700/50 border border-gray-300/30 dark:border-gray-600/30 py-2 px-4 rounded-full shadow-sm">
+              <span className="text-base text-gray-600 dark:text-gray-300">
+                N/A
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Size Selector Section */}
+      <div className="flex justify-center items-center py-2" ref={dropdownRef}>
+        {availableSizesForDropdown.length > 0 && (
+          <div className="relative">
+            <button
+              type="button"
+              className="px-3.5 py-2 mt-2 border border-gray-300/60 dark:border-gray-600/60 rounded-full text-base font-medium text-gray-700 dark:text-gray-200 bg-white/40 dark:bg-black/50 hover:bg-white/60 dark:hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:ring-offset-2 focus:ring-offset-white/20 dark:focus:ring-offset-black/20 flex items-center min-w-[90px] justify-center transition-all duration-200 shadow-sm hover:shadow-md"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              aria-haspopup="listbox"
+              aria-expanded={isDropdownOpen}
+            >
+              <span className="truncate tabular-nums">
+                {selectedSizeObject
+                  ? `${selectedSizeObject.size_kg}kg`
+                  : "Size"}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 ml-2 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-48 bg-white/80 dark:bg-black/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-600/50 rounded-lg shadow-2xl z-[6000] max-h-52 overflow-y-auto py-1">
+                {availableSizesForDropdown.map((sizeOpt) => (
+                  <div
+                    key={sizeOpt.id}
+                    className={`px-3.5 py-2 text-sm hover:bg-indigo-500/10 dark:hover:bg-indigo-400/20 cursor-pointer text-gray-800 dark:text-gray-100 ${
+                      selectedSizeId === sizeOpt.id
+                        ? "bg-indigo-500/20 dark:bg-indigo-400/30 font-semibold"
+                        : ""
+                    } transition-colors duration-150 tabular-nums`}
+                    onClick={() => handleSizeChange(sizeOpt.id)}
+                    role="option"
+                    aria-selected={selectedSizeId === sizeOpt.id}
+                  >
+                    {sizeOpt.size_kg} kg - ₹
+                    <span className="tabular-nums">
+                      {sizeOpt.price.toLocaleString(undefined, {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </span>
+                    {sizeOpt.retailer_name && (
+                      <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">
+                        ({sizeOpt.retailer_name})
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Brand & Name */}
-      <div className="mt-2">
-        <span className="text-sm text-gray-600 font-semibold">{product.brand}</span>
-        <h3 className="text-lg font-bold truncate">{product.name}</h3>
+      {/* Certifications Section */}
+      <div className="h-[72px] w-full flex items-center justify-center overflow-x-auto no-scrollbar">
+        {product.certifications && product.certifications.length > 0 && (
+          <div className="flex items-center justify-center flex-nowrap gap-4 md:gap-5">
+            {product.certifications.map((cert) => (
+              <div
+                key={cert.id}
+                className="group relative flex-shrink-0 flex items-center justify-center w-16 h-16 md:w-[70px] md:h-[70px] rounded-full bg-white/30 dark:bg-black/40 backdrop-blur-sm border border-gray-300/30 dark:border-gray-600/30 hover:scale-105 transition-all duration-300"
+                title={cert.name}
+              >
+                <div className="relative w-11 h-11 md:w-12 md:h-12">
+                  <Image
+                    src={cert.image_url || PLACEHOLDER_CERT_IMAGE}
+                    alt={cert.name}
+                    fill
+                    sizes="70px"
+                    className="object-contain rounded-full p-1"
+                  />
+                </div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-30">
+                  <div className="bg-black/80 dark:bg-white/80 backdrop-blur-sm text-white dark:text-black text-sm px-2.5 py-1.5 rounded-md shadow-xl">
+                    {cert.name}
+                  </div>
+                  <div className="w-2.5 h-2.5 bg-black/80 dark:bg-white/80 transform rotate-45 absolute -bottom-[5px] left-1/2 -translate-x-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ export const SearchComponent = ({
   maxSelections = 4
 }: SearchComponentProps) => {
   const [query, setQuery] = useState('');
-  const [debouncedQuery] = useDebounce(query, 300);
+  const [debouncedQuery] = useDebounce(query, 500);
   const [localResults, setLocalResults] = useState<Product[]>([]);
   
   // Use the comparison context with correct properties
@@ -28,27 +28,28 @@ export const SearchComponent = ({
   // Use React Query for caching search results
   const queryClient = useQueryClient();
   
-  const { data: results, error } = useQuery({
-    queryKey: ['productSearch', debouncedQuery],
-    queryFn: async () => {
-      if (!debouncedQuery || debouncedQuery.length < 2) {
-        return [];
-      }
-      
-      // Only select the fields we need for the search results
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, name, brand')
-        .ilike('name', `%${debouncedQuery}%`)
-        .limit(5);
+  // Add better query options
+const { data: results, error } = useQuery({
+  queryKey: ['productSearch', debouncedQuery],
+  queryFn: async () => {
+    if (!debouncedQuery || debouncedQuery.length < 2) {
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, brand')
+      .or(`name.ilike.%${debouncedQuery}%,brand.ilike.%${debouncedQuery}%`) // Search both name and brand
+      .limit(8); // Increased limit
         
-      if (error) throw error;
-      return data as Product[];
-    },
-    enabled: debouncedQuery.length > 1, // Only run query if we have at least 2 characters
-    staleTime: 30 * 60 * 1000, // Cache results for 30 minutes (increased from 5)
-    refetchOnWindowFocus: false,
-  });
+    if (error) throw error;
+    return data as Product[];
+  },
+  enabled: debouncedQuery.length > 1,
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+  refetchOnWindowFocus: false,
+});
   
   // Update local results when React Query results change
   useEffect(() => {

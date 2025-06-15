@@ -33,6 +33,9 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    --glass-surface: rgba(255,255,255,0.1);
+    --glass-border: rgba(255,255,255,0.2);
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -59,8 +62,18 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    --glass-surface: rgba(0,0,0,0.25);
+    --glass-border: rgba(0,0,0,0.4);
   }
 }
+.glass-panel {
+  @apply bg-[var(--glass-surface)] backdrop-blur-lg
+         border border-[var(--glass-border)]
+         rounded-xl shadow-lg;
+}
+.text-accent       { @apply text-blue-400; }
+.hover\:text-accent-dark:hover { @apply text-blue-300; }
 
 @layer base {
   * {
@@ -70,3 +83,13 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Add to your global CSS file */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
