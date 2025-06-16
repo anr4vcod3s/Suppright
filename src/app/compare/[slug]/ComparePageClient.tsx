@@ -73,7 +73,7 @@ const ComparePageClient: React.FC<ComparePageClientProps> = ({
 
   return (
     <main className="container mx-auto p-4">
-      <h1 className="mb-8 mt-20 text-center text-3xl font-bold md:text-4xl">
+      <h1 className="mb-8 mt-32 text-center text-3xl font-bold md:text-4xl">
         {onPageDisplayTitle}
       </h1>
       {initialError && products.length > 0 && (

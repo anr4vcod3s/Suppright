@@ -36,8 +36,8 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
     );
   }
 
-  const proteinColor = "#3B82F6"; // Blue
-  const carbsColor = "#10B981"; // Green
+  const proteinColor = "#10B981"; // Blue
+  const carbsColor = "#3B82F6"; // Green
   const fatsColor = "#F59E0B"; // Amber/Orange
 
   return (

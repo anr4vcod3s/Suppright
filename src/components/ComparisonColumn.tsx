@@ -1,4 +1,3 @@
-// components/ComparisonColumn.tsx
 import React from "react";
 import { X, AlertTriangle } from "lucide-react";
 import { ComparisonProductData } from "@/lib/hooks";
@@ -8,14 +7,18 @@ interface ComparisonColumnProps {
   product?: ComparisonProductData | null;
   onRemove: (productId: string) => void;
   className?: string;
-  style?: React.CSSProperties; // Added style prop
+  style?: React.CSSProperties;
+  selectedSizeId: string | null;
+  onSizeChange: (productId: string, newSizeId: string) => void;
 }
 
 const ComparisonColumn: React.FC<ComparisonColumnProps> = ({
   product,
   onRemove,
   className = "",
-  style = {}, // Destructure style prop
+  style = {},
+  selectedSizeId,
+  onSizeChange,
 }) => {
   const baseClasses =
     "comparison-grid-cell flex flex-col items-center justify-center";
@@ -24,7 +27,7 @@ const ComparisonColumn: React.FC<ComparisonColumnProps> = ({
     return (
       <div
         className={`${baseClasses} ${className} py-4 px-3 bg-white/5 dark:bg-black/10 backdrop-blur-sm text-center h-full min-h-[200px] rounded-lg`}
-        style={style} // Apply style prop
+        style={style}
       >
         <AlertTriangle className="h-10 w-10 text-amber-500 dark:text-amber-400 mb-3" />
         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -54,7 +57,7 @@ const ComparisonColumn: React.FC<ComparisonColumnProps> = ({
   return (
     <div
       className={`${baseClasses} ${className} relative justify-start p-2 pt-3`}
-      style={style} // Apply style prop
+      style={style}
     >
       <button
         onClick={() => onRemove(product.id)}
@@ -64,7 +67,11 @@ const ComparisonColumn: React.FC<ComparisonColumnProps> = ({
         <X className="h-4 w-4 group-hover:scale-110 transition-transform" />
       </button>
       <div className="w-full flex-grow flex items-start justify-center">
-        <ProductCard product={productCardDataForHeader} />
+        <ProductCard
+          product={productCardDataForHeader}
+          selectedSizeId={selectedSizeId}
+          onSizeChange={(newSizeId) => onSizeChange(product.id, newSizeId)}
+        />
       </div>
     </div>
   );

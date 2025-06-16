@@ -1,3 +1,5 @@
+// tailwind.config.ts
+
 import type { Config } from "tailwindcss";
 import tailwindCssAnimate from "tailwindcss-animate";
 
@@ -73,8 +75,8 @@ export default {
       animation: {
         aurora: "aurora 60s linear infinite",
         "upward-sheen": "upward-sheen 10s infinite",
+        "spin-slow": "spin 3s linear infinite",
       },
-      // --- CORRECTED KEYFRAMES SECTION ---
       keyframes: {
         aurora: {
           from: {
@@ -84,7 +86,6 @@ export default {
             backgroundPosition: "350% 50%, 350% 50%",
           },
         },
-        // 'upward-sheen' is now a sibling to 'aurora'
         "upward-sheen": {
           "0%, 85%": {
             transform: "translateY(100%)",

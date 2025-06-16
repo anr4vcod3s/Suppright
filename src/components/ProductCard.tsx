@@ -1,6 +1,6 @@
-// components/ProductCard.tsx
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+// CORRECTED: Removed unused 'useRef' from this import
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { ProductSizeDetail } from "@/lib/hooks";
@@ -20,70 +20,55 @@ export interface ProductCardProps {
     certifications?: Certification[];
     product_sizes?: ProductSizeDetail[] | null;
   };
+  selectedSizeId: string | null;
+  onSizeChange: (newSizeId: string) => void;
 }
 
 const PLACEHOLDER_IMAGE_LG = "/api/placeholder/400/400";
 const PLACEHOLDER_CERT_IMAGE = "/api/placeholder/60/60";
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
-  const [currentDisplayPrice, setCurrentDisplayPrice] = useState<
-    number | null
-  >(null);
-  const [currentDisplayRetailer, setCurrentDisplayRetailer] = useState<
-    string | null
-  >(null);
-  const [currentAffiliateLink, setCurrentAffiliateLink] = useState<
-    string | null
-  >(null);
-
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  selectedSizeId,
+  onSizeChange,
+}) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // The dropdown ref is no longer needed as we handle closing differently now
+  // const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const sizes = product?.product_sizes;
-    if (sizes && sizes.length > 0) {
-      let initialSizeDetail = sizes.find((s) => s.is_popular);
-      if (!initialSizeDetail) initialSizeDetail = sizes[0];
-      if (initialSizeDetail) {
-        setSelectedSizeId(initialSizeDetail.id);
-        setCurrentDisplayPrice(initialSizeDetail.price);
-        setCurrentDisplayRetailer(initialSizeDetail.retailer_name || null);
-        setCurrentAffiliateLink(initialSizeDetail.affiliate_link || null);
-      }
-    } else {
-      setSelectedSizeId(null);
-      setCurrentDisplayPrice(null);
-      setCurrentDisplayRetailer(null);
-      setCurrentAffiliateLink(null);
-    }
-  }, [product?.product_sizes]);
+  const {
+    currentDisplayPrice,
+    currentDisplayRetailer,
+    currentAffiliateLink,
+    selectedSizeObject,
+  } = useMemo(() => {
+    const sizes = product?.product_sizes || [];
+    const selectedDetail = sizes.find((s) => s.id === selectedSizeId);
+
+    return {
+      currentDisplayPrice: selectedDetail?.price ?? null,
+      currentDisplayRetailer: selectedDetail?.retailer_name ?? null,
+      currentAffiliateLink: selectedDetail?.affiliate_link ?? null,
+      selectedSizeObject: selectedDetail,
+    };
+  }, [product?.product_sizes, selectedSizeId]);
 
   const handleSizeChange = (sizeId: string) => {
-    const selectedDetail = product?.product_sizes?.find(
-      (s) => s.id === sizeId,
-    );
-    if (selectedDetail) {
-      setSelectedSizeId(selectedDetail.id);
-      setCurrentDisplayPrice(selectedDetail.price);
-      setCurrentDisplayRetailer(selectedDetail.retailer_name || null);
-      setCurrentAffiliateLink(selectedDetail.affiliate_link || null);
-      setIsDropdownOpen(false);
-    }
+    onSizeChange(sizeId);
+    setIsDropdownOpen(false);
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // A simpler way to handle dropdown closing without a ref
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        isDropdownOpen &&
+        !(event.target as HTMLElement).closest(".size-dropdown-container")
       ) {
         setIsDropdownOpen(false);
       }
     };
-    if (isDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -99,13 +84,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const formattedProductName = `${product.brand} ${product.name}`;
   const availableSizesForDropdown = product.product_sizes || [];
-  const selectedSizeObject = availableSizesForDropdown.find(
-    (s) => s.id === selectedSizeId,
-  );
 
   return (
     <div className="w-full h-full flex flex-col text-left ">
-      {/* Name & Brand Section (Fixed Height) */}
       <div className="p-3 h-28 mb-2 flex flex-col justify-start">
         <div className="text-sm font-bold italic text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
           {product.brand}
@@ -115,8 +96,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </h3>
       </div>
 
-      {/* UPDATED: Image Section now has a fixed height (h-52) instead of flex-grow */}
-      <div className="relative w-full h-80 mx-auto bg-gray-200/20 dark:bg-gray-700/20 rounded-xl overflow-hidden group transition-all duration-300">
+      <div className="relative w-full h-80 mx-auto bg-gray-200/20 dark:bg-gray-700/20 overflow-hidden group transition-all duration-300">
         <Image
           src={product.image_url || PLACEHOLDER_IMAGE_LG}
           alt={formattedProductName}
@@ -168,8 +148,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
       </div>
 
-      {/* Size Selector Section */}
-      <div className="flex justify-center items-center py-2" ref={dropdownRef}>
+      <div className="flex justify-center items-center py-2 size-dropdown-container">
         {availableSizesForDropdown.length > 0 && (
           <div className="relative">
             <button
@@ -224,7 +203,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         )}
       </div>
 
-      {/* Certifications Section */}
       <div className="h-[72px] w-full flex items-center justify-center overflow-x-auto no-scrollbar">
         {product.certifications && product.certifications.length > 0 && (
           <div className="flex items-center justify-center flex-nowrap gap-4 md:gap-5">

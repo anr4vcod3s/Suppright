@@ -1,133 +1,139 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { useDebounce } from 'use-debounce';
-import { supabase } from '@/lib/supabase/client';
-import { useComparison } from '@/context/context';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-// Import Product type from schemas.ts
-import { Product } from '@/lib/schemas';
+import React, { useEffect, useState, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "use-debounce";
+import { supabase } from "@/lib/supabase/client";
+import { useComparison } from "@/context/context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Product } from "@/lib/schemas";
 
 interface SearchComponentProps {
   onProductSelect?: (product: Product) => void;
   maxSelections?: number;
 }
 
-export const SearchComponent = ({ 
+export const SearchComponent = ({
   onProductSelect,
-  maxSelections = 4
+  maxSelections = 4,
 }: SearchComponentProps) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [debouncedQuery] = useDebounce(query, 500);
   const [localResults, setLocalResults] = useState<Product[]>([]);
-  
-  // Use the comparison context with correct properties
+
+  // ADDED: Ref for the main component container to detect outside clicks
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
   const { productIds, addProduct, isInComparison } = useComparison();
-  
-  // Use React Query for caching search results
   const queryClient = useQueryClient();
-  
-  // Add better query options
-const { data: results, error } = useQuery({
-  queryKey: ['productSearch', debouncedQuery],
-  queryFn: async () => {
-    if (!debouncedQuery || debouncedQuery.length < 2) {
-      return [];
-    }
-    
-    const { data, error } = await supabase
-      .from('products')
-      .select('id, name, brand')
-      .or(`name.ilike.%${debouncedQuery}%,brand.ilike.%${debouncedQuery}%`) // Search both name and brand
-      .limit(8); // Increased limit
-        
-    if (error) throw error;
-    return data as Product[];
-  },
-  enabled: debouncedQuery.length > 1,
-  staleTime: 5 * 60 * 1000, // 5 minutes
-  gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-  refetchOnWindowFocus: false,
-});
-  
-  // Update local results when React Query results change
+
+  const { data: results, error } = useQuery({
+    queryKey: ["productSearch", debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery || debouncedQuery.length < 2) return [];
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, brand")
+        .or(`name.ilike.%${debouncedQuery}%,brand.ilike.%${debouncedQuery}%`)
+        .limit(8);
+
+      if (error) throw error;
+      return data as Product[];
+    },
+    enabled: debouncedQuery.length > 1,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   useEffect(() => {
-    if (results) {
-      setLocalResults(results);
-    }
+    if (results) setLocalResults(results);
   }, [results]);
-  
-  // Prefetch product details when hovering over a search result
+
+  // ADDED: Effect to handle closing the suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setLocalResults([]); // Clear results to close the dropdown
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Cleanup the event listener on component unmount
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []); // Empty dependency array ensures this runs only once
+
   const prefetchProductDetails = (productId: string) => {
     queryClient.prefetchQuery({
-      queryKey: ['productDetails', productId],
+      queryKey: ["productDetails", productId],
       queryFn: async () => {
         const { data } = await supabase
-          .from('products')
-          .select('*, nutritional_info(*), amino_profiles(*)')
-          .eq('id', productId)
+          .from("products")
+          .select("*, nutritional_info(*), amino_profiles(*)")
+          .eq("id", productId)
           .single();
-          
+
         return data;
       },
-      staleTime: 60 * 60 * 1000, // Increased to 60 minutes
+      staleTime: 60 * 60 * 1000,
     });
   };
-  
+
   const handleProductSelect = (product: Product) => {
-    // Don't add if we've reached the maximum
-    if (productIds.length >= maxSelections) {
-      return;
-    }
-    
-    // Add product to comparison context
+    if (productIds.length >= maxSelections) return;
+
     addProduct(product.id);
-    
-    // Call the prop callback if provided
-    if (onProductSelect) {
-      onProductSelect(product);
-    }
-    
-    // Clear the search
-    setQuery('');
+    if (onProductSelect) onProductSelect(product);
+
+    setQuery("");
     setLocalResults([]);
   };
 
   return (
-    <div className="relative w-full max-w-md">
+    // ADDED: Ref is attached to the main container
+    <div ref={searchContainerRef} className="relative w-full max-w-3xl">
       <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search products to compare..."
-        className="w-full"
+        // MODIFIED: Added placeholder:text-lg for larger placeholder text
+        className="w-full h-14 text-lg placeholder:text-lg"
       />
 
       {localResults.length > 0 && (
-        <ul className="absolute z-10 top-full left-0 w-full bg-white shadow-lg rounded-md mt-1 border border-gray-200">
+        // MODIFIED: Changed to rounded-xl for a fuller rounded look
+        <ul className="absolute z-10 top-full left-0 w-full bg-white shadow-xl rounded-xl mt-2 border border-gray-200 overflow-hidden">
           {localResults.map((item) => {
-            // For actual products, check if already added
             const alreadyAdded = isInComparison(item.id);
-            
+
             return (
               <li
                 key={item.id}
-                className={`px-4 py-2 cursor-pointer hover:bg-gray-100 border-b last:border-b-0 ${
-                  alreadyAdded ? 'opacity-50' : ''
+                // MODIFIED: Reduced vertical padding (py-3) and removed hover/transition classes
+                className={`relative px-6 py-3 cursor-pointer border-b last:border-b-0 overflow-hidden ${
+                  alreadyAdded ? "opacity-50" : ""
                 }`}
                 onClick={() => {
-                  if (!alreadyAdded) {
-                    handleProductSelect(item);
-                  }
+                  if (!alreadyAdded) handleProductSelect(item);
                 }}
                 onMouseEnter={() => {
-                  // Prefetch product details when hovering
                   prefetchProductDetails(item.id);
                 }}
               >
-                {item.name} - {item.brand}
-                {alreadyAdded && <span className="ml-2 text-sm text-blue-500">Added</span>}
+                <span className="relative z-10 text-lg">
+                  {item.name} - {item.brand}
+                  {alreadyAdded && (
+                    <span className="ml-2 text-base text-blue-500 font-medium">
+                      Added
+                    </span>
+                  )}
+                </span>
               </li>
             );
           })}
@@ -135,8 +141,9 @@ const { data: results, error } = useQuery({
       )}
 
       {error && (
-        <p className="text-red-500 mt-2 text-sm">
-          Failed to search products: {error instanceof Error ? error.message : 'Unknown error'}
+        <p className="text-red-500 mt-2 text-base">
+          Failed to search products:{" "}
+          {error instanceof Error ? error.message : "Unknown error"}
         </p>
       )}
     </div>

@@ -1,5 +1,4 @@
-// components/ComparisonTable.tsx
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useComparisonProducts, useComparison } from "@/context/context";
 import ComparisonColumn from "./ComparisonColumn";
 import {
@@ -7,18 +6,14 @@ import {
   ChevronDown,
   ChevronUp,
   Settings2,
-  Eye,
-  EyeOff,
   Info,
   AlertTriangle,
-  CheckCircle,
   Check,
   X,
+  DollarSign,
+  CheckCircle,
 } from "lucide-react";
-import {
-  RenderableMetricType,
-  getNestedValue as getNestedPathValue,
-} from "@/lib/comparisonUtils";
+import { getNestedValue as getNestedPathValue } from "@/lib/comparisonUtils";
 import { ComparisonProductData } from "@/lib/hooks";
 import RadarChartSection from "./RadarChartSection";
 import { MacrosCell } from "./ui/MacrosCell";
@@ -31,7 +26,9 @@ interface RadarChartDataPoint {
 }
 
 type TableMetricType =
-  | RenderableMetricType
+  | "number"
+  | "text"
+  | "boolean"
   | "macros"
   | "protein_serving_display"
   | "flavors_display"
@@ -44,7 +41,6 @@ interface MetricConfig {
   path?: string;
   type: TableMetricType;
   unit?: string;
-  isDetailed?: boolean;
   description?: string;
 }
 
@@ -53,14 +49,15 @@ const ComparisonTable: React.FC = () => {
   const { removeProduct } = useComparison();
   const [showIndividualRadarChart, setShowIndividualRadarChart] =
     useState(false);
-  const [showDetailedMetrics, setShowDetailedMetrics] = useState(false);
+  const [showPriceDetails, setShowPriceDetails] = useState(false);
+  const [selectedSizes, setSelectedSizes] = useState<
+    Record<string, string | null>
+  >({});
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const productCardHeight = 480; // Increased height to accommodate new card layout
-
+  const productCardHeight = 480;
   const gridContainerClasses =
     "grid grid-flow-col auto-cols-[min(320px,85vw)] lg:grid-flow-row lg:grid-cols-[repeat(var(--num-products,1),minmax(280px,320px))]";
-
   const gridStyle = useMemo(
     () =>
       ({
@@ -70,7 +67,56 @@ const ComparisonTable: React.FC = () => {
     [products.length, productCardHeight],
   );
 
-  const metrics: MetricConfig[] = [
+  useEffect(() => {
+    if (!products || products.length === 0) {
+      setSelectedSizes({});
+      return;
+    }
+    const allProductSizes: Set<number>[] = products.map((p) =>
+      new Set(p.product_sizes_details?.map((s) => s.size_kg) || []),
+    );
+    const commonSizesKg = allProductSizes.reduce((common, current) => {
+      return new Set([...common].filter((size) => current.has(size)));
+    });
+    const targetCommonSize =
+      commonSizesKg.size > 0 ? [...commonSizesKg][0] : null;
+    setSelectedSizes((prevSelectedSizes) => {
+      const newSelectedSizes: Record<string, string | null> = {};
+      let stateChanged = false;
+      for (const product of products) {
+        let targetSizeId: string | null = null;
+        if (targetCommonSize !== null) {
+          targetSizeId =
+            product.product_sizes_details?.find(
+              (s) => s.size_kg === targetCommonSize,
+            )?.id || null;
+        } else {
+          targetSizeId =
+            prevSelectedSizes[product.id] ||
+            product.product_sizes_details?.find((s) => s.is_popular)?.id ||
+            product.product_sizes_details?.[0]?.id ||
+            null;
+        }
+        newSelectedSizes[product.id] = targetSizeId;
+        if (prevSelectedSizes[product.id] !== targetSizeId) {
+          stateChanged = true;
+        }
+      }
+      if (
+        stateChanged ||
+        Object.keys(prevSelectedSizes).length !== products.length
+      ) {
+        return newSelectedSizes;
+      }
+      return prevSelectedSizes;
+    });
+  }, [products]);
+
+  const handleSizeSelectionChange = (productId: string, newSizeId: string) => {
+    setSelectedSizes((prev) => ({ ...prev, [productId]: newSizeId }));
+  };
+
+  const allMetrics: MetricConfig[] = [
     {
       id: "price_per_gram_protein",
       label: "Price per Gram Protein",
@@ -78,6 +124,15 @@ const ComparisonTable: React.FC = () => {
       type: "number",
       unit: "₹",
       description: "Cost effectiveness based on protein content.",
+    },
+    {
+      id: "price_per_serving_pvm",
+      label: "Price per Serving",
+      path: "price_per_serving",
+      type: "number",
+      unit: "₹",
+      description:
+        "Estimated price per serving based on the most popular size.",
     },
     {
       id: "macros_profile_visual",
@@ -112,7 +167,6 @@ const ComparisonTable: React.FC = () => {
       path: "total_eaas_g",
       type: "number",
       unit: "g",
-      isDetailed: false,
       description:
         "Total Essential Amino Acids per serving. Click below to compare detailed profiles.",
     },
@@ -134,7 +188,6 @@ const ComparisonTable: React.FC = () => {
       label: "Filtration Process",
       path: "filtration_process",
       type: "text",
-      isDetailed: true,
       description: "Method used to process and filter the protein.",
     },
     {
@@ -143,7 +196,6 @@ const ComparisonTable: React.FC = () => {
       path: "calories",
       type: "number",
       unit: "kcal",
-      isDetailed: true,
       description: "Energy value per serving.",
     },
     {
@@ -152,37 +204,26 @@ const ComparisonTable: React.FC = () => {
       path: "cholesterol_mg",
       type: "number",
       unit: "mg",
-      isDetailed: true,
       description: "Cholesterol content per serving.",
-    },
-    {
-      id: "price_per_serving_pvm",
-      label: "Price per Serving (PVM)",
-      path: "price_per_serving",
-      type: "number",
-      unit: "₹",
-      isDetailed: true,
-      description:
-        "Estimated price per serving based on Product Value Metrics.",
     },
     {
       id: "dietary_info_summary",
       label: "Dietary Information",
       type: "dietary_summary_conditional",
-      isDetailed: true,
       description: "Summary of dietary flags and allergens.",
     },
     {
       id: "additional_compounds",
       label: "Additional Compounds",
       type: "additional_compounds_display",
-      isDetailed: false,
       description: "Notable added ingredients or compounds.",
     },
   ];
 
-  const visibleMetrics = metrics.filter(
-    (m) => !m.isDetailed || showDetailedMetrics,
+  const priceMetricIds = ["price_per_gram_protein", "price_per_serving_pvm"];
+  const priceMetrics = allMetrics.filter((m) => priceMetricIds.includes(m.id));
+  const generalMetrics = allMetrics.filter(
+    (m) => !priceMetricIds.includes(m.id),
   );
 
   const prepareRadarChartData = (): {
@@ -224,29 +265,6 @@ const ComparisonTable: React.FC = () => {
     return { data, productNames, colors };
   };
 
-  const renderSplitDecimalNumber = (
-    num: number | string,
-    baseClasses: string,
-    fractionalClasses: string,
-  ) => {
-    const numStr = String(num);
-    const parts = numStr.split(".");
-    const integerPart = parts[0];
-    const fractionalPart = parts[1];
-
-    return (
-      <span className={`${baseClasses} tabular-nums`}>
-        {integerPart}
-        {fractionalPart && (
-          <>
-            <span className="text-gray-500 dark:text-gray-400">.</span>
-            <span className={fractionalClasses}>{fractionalPart}</span>
-          </>
-        )}
-      </span>
-    );
-  };
-
   const renderMetricValue = (
     metric: MetricConfig,
     product: ComparisonProductData,
@@ -261,6 +279,29 @@ const ComparisonTable: React.FC = () => {
         {content}
       </div>
     );
+
+    const renderSplitDecimalNumber = (
+      num: number | string,
+      baseClasses: string,
+      fractionalClasses: string,
+    ) => {
+      const numStr = String(num);
+      const parts = numStr.split(".");
+      const integerPart = parts[0];
+      const fractionalPart = parts[1];
+
+      return (
+        <span className={`${baseClasses} tabular-nums`}>
+          {integerPart}
+          {fractionalPart && (
+            <>
+              <span className="text-gray-500 dark:text-gray-400">.</span>
+              <span className={fractionalClasses}>{fractionalPart}</span>
+            </>
+          )}
+        </span>
+      );
+    };
 
     const renderNumericValue = (
       val: number | null | undefined,
@@ -281,7 +322,7 @@ const ComparisonTable: React.FC = () => {
             </span>
           )}
           {renderSplitDecimalNumber(
-            val,
+            val.toFixed(isCurrency ? 2 : 1),
             "font-normal text-3xl sm:text-4xl text-gray-800 dark:text-white",
             "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400",
           )}
@@ -445,7 +486,6 @@ const ComparisonTable: React.FC = () => {
           </div>
         );
       case "number":
-      case "percentage":
         return simpleValueCellWrapper(
           renderNumericValue(
             value as number,
@@ -475,6 +515,96 @@ const ComparisonTable: React.FC = () => {
         );
     }
   };
+
+  // --- REVERTED AND CORRECTED: This function now uses a simple, robust layout ---
+  const renderMetricRow = (metric: MetricConfig, metricIndex: number) => (
+    <div
+      key={metric.id}
+      className={`${
+        metricIndex % 2 === 0
+          ? "bg-white/5 dark:bg-black/5"
+          : "bg-transparent"
+      } backdrop-blur-sm`}
+    >
+      {/* Label Section */}
+      <div
+        className=" font-semibold flex justify-center items-center group relative px-3 sm:px-5 lg:px-7"
+        title={metric.description}
+      >
+        <div className="w-full sm:w-4/5 lg:w-3/5 flex justify-center items-center text-center px-4 py-3 sm:px-5 sm:py-3.5 lg:px-6 lg:py-4 rounded-full border border-gray-400/20 dark:border-gray-700 bg-white/5 dark:bg-black/10 shadow-sm">
+          <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent text-lg sm:text-xl lg:text-2xl">
+            {metric.label}
+          </span>
+          {metric.description && (
+            <Info className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 dark:text-gray-500 ml-2.5 sm:ml-3 lg:ml-4 opacity-60 group-hover:opacity-100 transition-opacity cursor-help flex-shrink-0" />
+          )}
+        </div>
+      </div>
+
+      {/* Values Section */}
+      <div
+        className={`${gridContainerClasses} min-h-[100px] sm:min-h-[110px] lg:min-h-[120px]`}
+        style={gridStyle}
+      >
+        {products.map((productItem, productIndexInRow) => (
+          <div
+            key={`${metric.id}-${productItem.id}`}
+            className={`flex py-4 items-stretch justify-center hover:bg-white/10 dark:hover:bg-black/10 transition-colors duration-200 ${
+              productIndexInRow < products.length - 1
+                ? "border-r border-gray-400/20 dark:border-gray-700"
+                : ""
+            }`}
+          >
+            {productItem ? (
+              renderMetricValue(metric, productItem, productIndexInRow)
+            ) : (
+              <div className="py-4 sm:py-5 lg:py-6 px-2 sm:px-3 lg:px-4 text-sm sm:text-base lg:text-lg text-gray-500 dark:text-gray-400 italic">
+                N/A
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* EAA Section (conditionally rendered after the main row) */}
+      {metric.id === "eaas_section" && products.length > 0 && (
+        <div className="col-span-full py-4">
+          <div className="text-center">
+            <button
+              onClick={() => setShowIndividualRadarChart(!showIndividualRadarChart)}
+              className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 lg:px-6 lg:py-3 rounded-full text-sm sm:text-base lg:text-lg font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 dark:bg-indigo-400/20 hover:bg-indigo-500/20 dark:hover:bg-indigo-400/30 border border-indigo-500/20 dark:border-indigo-400/20 shadow-sm hover:shadow-md transition-all duration-300"
+            >
+              <Settings2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              <span>Compare Amino Profiles</span>
+              {showIndividualRadarChart ? (
+                <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              ) : (
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              )}
+            </button>
+          </div>
+
+          {showIndividualRadarChart && (
+            <div
+              id="amino-acid-radar-chart"
+              className="overflow-hidden bg-white/10 dark:bg-black/10 backdrop-blur-md p-3 sm:p-4 md:p-6 shadow-inner mt-4"
+            >
+              {(() => {
+                const { data, productNames, colors } = prepareRadarChartData();
+                return (
+                  <RadarChartSection
+                    data={data}
+                    productNames={productNames}
+                    colors={colors}
+                  />
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   if (isLoading && products.length === 0) {
     return (
@@ -520,7 +650,7 @@ const ComparisonTable: React.FC = () => {
     >
       <ScrollBasedTracingBeam targetRef={tableContainerRef} />
 
-      <div className="comparison-table-scrollbar overflow-x-auto scroll-snap-type-x-mandatory lg:scroll-snap-type-none relative rounded-xl border border-gray-300/10 dark:border-gray-700/10">
+      <div className="comparison-table-scrollbar overflow-x-auto scroll-snap-type-x-mandatory lg:scroll-snap-type-none relative rounded-xl border border-gray-300 dark:border-gray-700">
         <div className="w-max lg:w-max lg:mx-auto">
           <div
             className={`${gridContainerClasses} sticky top-0 z-20 bg-white/10 dark:bg-black/10 backdrop-blur-lg`}
@@ -533,131 +663,46 @@ const ComparisonTable: React.FC = () => {
                 onRemove={removeProduct}
                 className={`scroll-snap-align-start lg:scroll-snap-align-none ${
                   index < products.length - 1
-                    ? "border-r border-gray-300/10 dark:border-gray-700/10"
+                    ? "border-r border-gray-300 dark:border-gray-700"
                     : ""
                 }`}
                 style={{ minHeight: `var(--product-card-height)` }}
+                selectedSizeId={selectedSizes[productItem.id] || null}
+                onSizeChange={handleSizeSelectionChange}
               />
             ))}
           </div>
 
           <div
-            className="text-center py-3.5 sm:py-4 border-b border-gray-300/10 dark:border-gray-700/10 sticky z-10 bg-white/30 dark:bg-black/30 backdrop-blur-md"
+            className="text-center py-3.5 sm:py-4 sticky z-10 bg-white/30 dark:bg-black/30 backdrop-blur-md"
             style={{ top: `var(--product-card-height)` }}
           >
             <button
-              onClick={() => setShowDetailedMetrics(!showDetailedMetrics)}
-              className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 lg:px-6 lg:py-3 rounded-full text-sm sm:text-base lg:text-lg font-medium text-gray-700 dark:text-gray-200 bg-white/60 dark:bg-black/60 hover:bg-white/80 dark:hover:bg-black/80 border border-gray-300/20 dark:border-gray-600/20 shadow-md hover:shadow-lg transition-all duration-300"
+              onClick={() => setShowPriceDetails(!showPriceDetails)}
+              className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 lg:px-6 lg:py-3 rounded-full text-sm sm:text-base lg:text-lg font-medium text-gray-700 dark:text-gray-200 bg-white/60 dark:bg-black/60 hover:bg-white/80 dark:hover:bg-black/80 border border-gray-300/20 dark:border-gray-200 shadow-md hover:shadow-lg transition-all duration-300"
             >
-              {showDetailedMetrics ? (
-                <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              <span>
+                {showPriceDetails
+                  ? "Hide Price Analysis"
+                  : "Show Price & Value Analysis"}
+              </span>
+              {showPriceDetails ? (
+                <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               ) : (
-                <Eye className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               )}
-              {showDetailedMetrics
-                ? "Hide Detailed Metrics"
-                : "See Detailed Comparison"}
             </button>
           </div>
 
-          {/* UPDATED: Refactored metric loop for robust collapse/expand */}
-          {visibleMetrics.map((metric, metricIndex) => (
-            <div
-              key={metric.id}
-              className={`${
-                metricIndex % 2 === 0
-                  ? "bg-white/5 dark:bg-black/5"
-                  : "bg-transparent"
-              } backdrop-blur-sm border-b border-gray-300/10 dark:border-gray-700/10`}
-            >
-              {/* Metric Label Row */}
-              <div
-                className="py-4 sm:py-5 lg:py-6 font-semibold flex justify-between items-center group relative px-3 sm:px-5 lg:px-7"
-                title={metric.description}
-              >
-                <div className="flex-grow flex justify-center items-center">
-                  <div className="w-full sm:w-4/5 lg:w-3/5 flex justify-center items-center text-center px-4 py-3 sm:px-5 sm:py-3.5 lg:px-6 lg:py-4 rounded-full border border-gray-400/20 dark:border-gray-600/20 bg-white/5 dark:bg-black/10 shadow-sm">
-                    <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent text-lg sm:text-xl lg:text-2xl">
-                      {metric.label}
-                    </span>
-                    {metric.description && (
-                      <Info className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 dark:text-gray-500 ml-2.5 sm:ml-3 lg:ml-4 opacity-60 group-hover:opacity-100 transition-opacity cursor-help flex-shrink-0" />
-                    )}
-                  </div>
-                </div>
-              </div>
+          {showPriceDetails &&
+            priceMetrics.map((metric, index) =>
+              renderMetricRow(metric, index),
+            )}
 
-              {/* Metric Value Row */}
-              <div
-                className={`${gridContainerClasses} min-h-[100px] sm:min-h-[110px] lg:min-h-[120px]`}
-                style={gridStyle}
-              >
-                {products.map((productItem, productIndexInRow) => (
-                  <div
-                    key={`${metric.id}-${productItem.id}`}
-                    className={`flex items-stretch justify-center hover:bg-white/10 dark:hover:bg-black/10 transition-colors duration-200 ${
-                      productIndexInRow < products.length - 1
-                        ? "border-r border-gray-300/10 dark:border-gray-700/10"
-                        : ""
-                    }`}
-                  >
-                    {productItem ? (
-                      renderMetricValue(
-                        metric,
-                        productItem,
-                        productIndexInRow,
-                      )
-                    ) : (
-                      <div className="py-4 sm:py-5 lg:py-6 px-2 sm:px-3 lg:px-4 text-sm sm:text-base lg:text-lg text-gray-500 dark:text-gray-400 italic">
-                        N/A
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* EAA Section (conditionally rendered within the metric block) */}
-              {metric.id === "eaas_section" && products.length > 0 && (
-                <div className="col-span-full">
-                  <div className="text-center py-4">
-                    <button
-                      onClick={() =>
-                        setShowIndividualRadarChart(!showIndividualRadarChart)
-                      }
-                      className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 lg:px-6 lg:py-3 rounded-full text-sm sm:text-base lg:text-lg font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 dark:bg-indigo-400/20 hover:bg-indigo-500/20 dark:hover:bg-indigo-400/30 border border-indigo-500/20 dark:border-indigo-400/20 shadow-sm hover:shadow-md transition-all duration-300"
-                    >
-                      <Settings2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                      <span>Compare Amino Profiles</span>
-                      {showIndividualRadarChart ? (
-                        <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                      )}
-                    </button>
-                  </div>
-
-                  {showIndividualRadarChart && (
-                    <div
-                      id="amino-acid-radar-chart"
-                      className="overflow-hidden bg-white/10 dark:bg-black/10 backdrop-blur-md p-3 sm:p-4 md:p-6 shadow-inner"
-                    >
-                      {(() => {
-                        const { data, productNames, colors } =
-                          prepareRadarChartData();
-                        return (
-                          <RadarChartSection
-                            data={data}
-                            productNames={productNames}
-                            colors={colors}
-                          />
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+          {generalMetrics.map((metric, index) =>
+            renderMetricRow(metric, index),
+          )}
         </div>
       </div>
     </div>
