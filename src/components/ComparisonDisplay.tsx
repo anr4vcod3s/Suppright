@@ -1,4 +1,3 @@
-// src/components/ComparisonDisplay.tsx
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -6,18 +5,29 @@ import Image from "next/image";
 import { useComparison, useComparisonProducts } from "@/context/context";
 import { X, Scale } from "lucide-react";
 
-const ICON_BUTTON_CLASSES =
-  "w-12 h-12 flex items-center justify-center rounded-full bg-card shadow-lg hover:bg-accent text-foreground";
-
+// Reusable class strings for consistent styling.
 const ITEM_AVATAR_CLASSES =
   "w-12 h-12 bg-secondary rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background";
 
+// A reusable constant for the "glass panel" effect on pill-shaped elements.
+// This includes the base style for light mode and the border/shadow effect for dark mode.
+const glassPanelPillClasses = `
+  rounded-full bg-card shadow-lg
+  dark:bg-black/30 dark:backdrop-blur-lg
+  dark:border dark:border-white/20
+  dark:shadow-lg dark:shadow-white/10
+`;
+
 const ComparisonDisplay = () => {
+  // --- STATE MANAGEMENT ---
   const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // --- CONTEXT HOOKS ---
   const { removeProduct } = useComparison();
   const { products, isLoading } = useComparisonProducts();
 
+  // --- LIFECYCLE EFFECTS ---
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -34,6 +44,7 @@ const ComparisonDisplay = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isExpanded, mounted]);
 
+  // --- MEMOIZED VALUES ---
   const toggleExpanded = () => setIsExpanded(!isExpanded);
 
   const compareUrl = useMemo(() => {
@@ -43,6 +54,7 @@ const ComparisonDisplay = () => {
     return `/compare/${sortedSlugs.join("-vs-")}`;
   }, [products]);
 
+  // --- RENDER LOGIC ---
   if (!mounted || products.length === 0) {
     return null;
   }
@@ -50,28 +62,25 @@ const ComparisonDisplay = () => {
   const canCompare = products.length >= 2 && compareUrl !== "#";
 
   return (
-    // This is the main container, correctly positioned and aligned.
     <div className="fixed bottom-8 right-8 flex flex-col items-end gap-3 comparison-container z-50">
       {isExpanded ? (
         // --- EXPANDED VIEW ---
-        <div
-          className="
-            flex flex-col gap-3 transition-all duration-300
-            dark:bg-black/30 dark:backdrop-blur-lg dark:p-4 dark:rounded-2xl
-            dark:border dark:border-white/20 dark:shadow-lg
-          "
-        >
+        <div className="flex flex-col gap-3 transition-all duration-300">
+          {/* Loading State Pill */}
           {isLoading && products.length === 0 ? (
-            <div className="w-full max-w-md flex items-center justify-center bg-card rounded-full shadow-lg px-4 py-2">
+            <div
+              className={`w-full max-w-md flex items-center justify-center px-4 py-2 ${glassPanelPillClasses}`}
+            >
               <span className="text-sm text-muted-foreground">
                 Loading products...
               </span>
             </div>
           ) : (
+            // Product Pills
             products.map((product) => (
               <div
                 key={product.id}
-                className="w-full md:w-96 flex items-center justify-between bg-card rounded-full shadow-lg pl-3 pr-4 py-2"
+                className={`w-full md:w-96 flex items-center justify-between pl-3 pr-4 py-2 ${glassPanelPillClasses}`}
               >
                 <div className="flex items-center gap-4">
                   <div className={ITEM_AVATAR_CLASSES}>
@@ -100,7 +109,7 @@ const ComparisonDisplay = () => {
                 </div>
                 <button
                   onClick={() => removeProduct(product.id)}
-                  className="p-2 hover:bg-accent rounded-full"
+                  className="p-2 hover:bg-accent/50 rounded-full"
                   aria-label="Remove item"
                 >
                   <X size={20} className="text-muted-foreground" />
@@ -109,17 +118,18 @@ const ComparisonDisplay = () => {
             ))
           )}
 
+          {/* Action Buttons */}
           <div className="flex gap-3 self-end">
             <Link href={canCompare ? compareUrl : "#"} passHref>
               <button
                 disabled={!canCompare}
-                className={`w-auto h-12 flex items-center justify-center rounded-full bg-card shadow-lg hover:bg-accent px-6 ${
+                className={`w-auto h-12 flex items-center justify-center px-6 hover:bg-accent/50 ${glassPanelPillClasses} ${
                   !canCompare ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Compare Products"
                 aria-label="Compare products"
               >
-                <Scale size={20} className="mr-2" />
+                <Scale size={20} className="mr-2 text-foreground" />
                 <span className="text-base font-medium text-foreground">
                   Compare
                 </span>
@@ -127,12 +137,11 @@ const ComparisonDisplay = () => {
             </Link>
             <button
               onClick={toggleExpanded}
-              className={ICON_BUTTON_CLASSES}
+              className={`w-12 h-12 flex items-center justify-center hover:bg-accent/50 ${glassPanelPillClasses}`}
               aria-label="Collapse comparison"
             >
-              <X size={24} />
+              <X size={24} className="text-foreground" />
             </button>
-            
           </div>
         </div>
       ) : (
@@ -142,8 +151,9 @@ const ComparisonDisplay = () => {
             <button
               disabled={!canCompare}
               className={`
-                relative w-12 h-12 rounded-full overflow-hidden shadow-lg border border-border
+                relative w-12 h-12 overflow-hidden
                 transition-opacity duration-300
+                ${glassPanelPillClasses}
                 ${!canCompare ? "opacity-50 cursor-not-allowed" : ""}
               `}
               title="Compare Products"
@@ -157,10 +167,10 @@ const ComparisonDisplay = () => {
               </span>
             </button>
           </Link>
-          
+
           <button
             onClick={toggleExpanded}
-            className={`flex items-center bg-card rounded-full shadow-lg p-2 border border-border ${
+            className={`flex items-center p-2 ${glassPanelPillClasses} ${
               !isExpanded ? "animate-subtle-pulse" : ""
             }`}
             aria-label="View comparison items"
@@ -185,8 +195,6 @@ const ComparisonDisplay = () => {
               ))}
             </div>
           </button>
-
-          
         </div>
       )}
     </div>

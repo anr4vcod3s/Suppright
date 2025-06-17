@@ -20,7 +20,6 @@ export const SearchComponent = ({
   const [debouncedQuery] = useDebounce(query, 500);
   const [localResults, setLocalResults] = useState<Product[]>([]);
 
-  // ADDED: Ref for the main component container to detect outside clicks
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const { productIds, addProduct, isInComparison } = useComparison();
@@ -47,26 +46,29 @@ export const SearchComponent = ({
   });
 
   useEffect(() => {
-    if (results) setLocalResults(results);
-  }, [results]);
+    if (results) {
+      const filteredResults = results.filter(
+        (product) => !isInComparison(product.id),
+      );
+      setLocalResults(filteredResults);
+    }
+  }, [results, isInComparison]);
 
-  // ADDED: Effect to handle closing the suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
-        setLocalResults([]); // Clear results to close the dropdown
+        setLocalResults([]);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      // Cleanup the event listener on component unmount
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
   const prefetchProductDetails = (productId: string) => {
     queryClient.prefetchQuery({
@@ -95,48 +97,31 @@ export const SearchComponent = ({
   };
 
   return (
-    // ADDED: Ref is attached to the main container
-    <div ref={searchContainerRef} className="relative w-full max-w-3xl">
+    <div ref={searchContainerRef} className="relative w-full max-w-2xl">
       <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search products to compare..."
-        // MODIFIED: Added placeholder:text-lg for larger placeholder text
-        className="w-full h-14 text-lg placeholder:text-lg"
+        className="w-full h-14 text-lg placeholder:text-lg rounded-full"
       />
 
       {localResults.length > 0 && (
-        // MODIFIED: Changed to rounded-xl for a fuller rounded look
-        <ul className="absolute z-10 top-full left-0 w-full bg-white shadow-xl rounded-xl mt-2 border border-gray-200 overflow-hidden">
-          {localResults.map((item) => {
-            const alreadyAdded = isInComparison(item.id);
-
-            return (
-              <li
-                key={item.id}
-                // MODIFIED: Reduced vertical padding (py-3) and removed hover/transition classes
-                className={`relative px-6 py-3 cursor-pointer border-b last:border-b-0 overflow-hidden ${
-                  alreadyAdded ? "opacity-50" : ""
-                }`}
-                onClick={() => {
-                  if (!alreadyAdded) handleProductSelect(item);
-                }}
-                onMouseEnter={() => {
-                  prefetchProductDetails(item.id);
-                }}
-              >
-                <span className="relative z-10 text-lg">
-                  {item.name} - {item.brand}
-                  {alreadyAdded && (
-                    <span className="ml-2 text-base text-blue-500 font-medium">
-                      Added
-                    </span>
-                  )}
-                </span>
-              </li>
-            );
-          })}
+        // MODIFIED: Replaced static colors with theme-aware variables for dark mode.
+        <ul className="absolute z-10 top-full left-0 w-full bg-background shadow-xl rounded-2xl mt-2 border border-border overflow-hidden">
+          {localResults.map((item) => (
+            <li
+              key={item.id}
+              // MODIFIED: Reduced vertical padding to py-2 and updated border color.
+              className="relative px-6 py-2 cursor-pointer border-b border-border last:border-b-0 overflow-hidden"
+              onClick={() => handleProductSelect(item)}
+              onMouseEnter={() => prefetchProductDetails(item.id)}
+            >
+              <span className="relative z-10 text-lg">
+                {item.name} - {item.brand}
+              </span>
+            </li>
+          ))}
         </ul>
       )}
 

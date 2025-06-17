@@ -76,6 +76,8 @@ export default {
         aurora: "aurora 60s linear infinite",
         "upward-sheen": "upward-sheen 10s infinite",
         "spin-slow": "spin 3s linear infinite",
+        // --- ADDED FOR SHIMMER EFFECT ---
+        shimmer: "shimmer 4s linear infinite",
       },
       keyframes: {
         aurora: {
@@ -99,6 +101,11 @@ export default {
             transform: "translateY(-100%)",
             opacity: "0",
           },
+        },
+        // --- ADDED FOR SHIMMER EFFECT ---
+        shimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
         },
       },
     },

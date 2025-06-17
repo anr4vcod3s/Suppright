@@ -1,11 +1,10 @@
-// src/components/ThemeToggle.tsx
 "use client";
 
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
-import { Button } from "@/components/ui/button"; // Assuming you have a button component, or use a standard <button>
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
@@ -16,9 +15,10 @@ export function ThemeToggle() {
       size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       aria-label="Toggle theme"
+      className="relative h-12 w-12 rounded-full border text-foreground border-foreground/30 hover:border-foreground/50 transition-colors"
     >
-      <Sun className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.5rem] w-[1.5rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       <span className="sr-only">Toggle theme</span>
     </Button>
   );

@@ -1,5 +1,4 @@
 "use client";
-// CORRECTED: Removed unused 'useRef' from this import
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { ChevronDown, ExternalLink } from "lucide-react";
@@ -33,8 +32,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onSizeChange,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  // The dropdown ref is no longer needed as we handle closing differently now
-  // const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {
     currentDisplayPrice,
@@ -60,7 +57,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // A simpler way to handle dropdown closing without a ref
       if (
         isDropdownOpen &&
         !(event.target as HTMLElement).closest(".size-dropdown-container")
@@ -86,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const availableSizesForDropdown = product.product_sizes || [];
 
   return (
-    <div className="w-full h-full flex flex-col text-left ">
+    <div className="w-full max-w-[320px] h-full flex flex-col text-left ">
       <div className="p-3 h-28 mb-2 flex flex-col justify-start">
         <div className="text-sm font-bold italic text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
           {product.brand}

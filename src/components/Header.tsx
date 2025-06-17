@@ -61,7 +61,7 @@ const Header = () => {
         {/* Search and Theme Toggle */}
         <div className="flex items-center gap-4">
           {isComparePage ? (
-            <div className="w-48 sm:w-64 md:w-72">
+            <div className="w-full sm:w-64 md:w-72">
               <SearchComponent onProductSelect={handleProductSelect} />
             </div>
           ) : (

@@ -1,3 +1,4 @@
+// components/ComparisonTable.tsx
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useComparisonProducts, useComparison } from "@/context/context";
 import ComparisonColumn from "./ComparisonColumn";
@@ -18,7 +19,7 @@ import { ComparisonProductData } from "@/lib/hooks";
 import RadarChartSection from "./RadarChartSection";
 import { MacrosCell } from "./ui/MacrosCell";
 import { ScrollBasedTracingBeam } from "./ui/ScrollBasedTracingBeam";
-import { HoverInfoCard } from "./ui/HoverInfoCard";
+import { ShimmeringHoverInfoCard } from "./ui/HoverInfoCard";
 
 interface RadarChartDataPoint {
   amino: string;
@@ -57,7 +58,7 @@ const ComparisonTable: React.FC = () => {
 
   const productCardHeight = 480;
   const gridContainerClasses =
-    "grid grid-flow-col auto-cols-[min(320px,85vw)] lg:grid-flow-row lg:grid-cols-[repeat(var(--num-products,1),minmax(280px,320px))]";
+    "grid grid-flow-col auto-cols-[min(320px,85vw)] lg:grid-flow-row lg:grid-cols-[repeat(var(--num-products,1),minmax(0,1fr))]";
   const gridStyle = useMemo(
     () =>
       ({
@@ -423,14 +424,15 @@ const ComparisonTable: React.FC = () => {
                     : ""
                 }`}
               >
-                <HoverInfoCard
-                  infoContent="Common allergens declared by the manufacturer. Always check the product label for the most accurate information."
-                  placement="top"
-                >
-                  <span className="font-semibold block text-gray-800 dark:text-gray-100 mb-1 cursor-help">
+                {/* --- 2. USE THE NEW COMPONENT FOR "ALLERGENS" --- */}
+                <div className="mb-1">
+                  <ShimmeringHoverInfoCard
+                    infoContent="Common allergens declared by the manufacturer. Always check the product label for the most accurate information."
+                    placement="top"
+                  >
                     Allergens:
-                  </span>
-                </HoverInfoCard>
+                  </ShimmeringHoverInfoCard>
+                </div>
                 <ul className="list-none pl-2 text-gray-600 dark:text-gray-300 space-y-1 text-sm">
                   {product.allergens_list?.map((allergen, index) => (
                     <li
@@ -458,9 +460,10 @@ const ComparisonTable: React.FC = () => {
           ([name, value]) => ({ name, value: String(value) }),
         );
         return (
-          <div className="py-4 px-2 flex flex-wrap justify-center items-center gap-2 min-h-[100px]">
+          <div className="py-4 px-2 flex flex-wrap justify-center items-center gap-x-4 gap-y-2 min-h-[100px]">
+            {/* --- 3. USE THE NEW COMPONENT FOR EACH COMPOUND --- */}
             {compoundsArray.map((compound, index) => (
-              <HoverInfoCard
+              <ShimmeringHoverInfoCard
                 key={`${product.id}-compound-${index}`}
                 infoContent={
                   <div className="p-1">
@@ -476,12 +479,8 @@ const ComparisonTable: React.FC = () => {
                   </div>
                 }
               >
-                <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-sky-500/10 dark:bg-sky-400/20 text-sky-700 dark:text-sky-300 border border-sky-500/30 dark:border-sky-400/40 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md backdrop-blur-sm">
-                  <span className="truncate max-w-[100px]">
-                    {compound.name}
-                  </span>
-                </div>
-              </HoverInfoCard>
+                {compound.name}
+              </ShimmeringHoverInfoCard>
             ))}
           </div>
         );
@@ -516,7 +515,6 @@ const ComparisonTable: React.FC = () => {
     }
   };
 
-  // --- REVERTED AND CORRECTED: This function now uses a simple, robust layout ---
   const renderMetricRow = (metric: MetricConfig, metricIndex: number) => (
     <div
       key={metric.id}
@@ -571,7 +569,9 @@ const ComparisonTable: React.FC = () => {
         <div className="col-span-full py-4">
           <div className="text-center">
             <button
-              onClick={() => setShowIndividualRadarChart(!showIndividualRadarChart)}
+              onClick={() =>
+                setShowIndividualRadarChart(!showIndividualRadarChart)
+              }
               className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 lg:px-6 lg:py-3 rounded-full text-sm sm:text-base lg:text-lg font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 dark:bg-indigo-400/20 hover:bg-indigo-500/20 dark:hover:bg-indigo-400/30 border border-indigo-500/20 dark:border-indigo-400/20 shadow-sm hover:shadow-md transition-all duration-300"
             >
               <Settings2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
@@ -651,7 +651,7 @@ const ComparisonTable: React.FC = () => {
       <ScrollBasedTracingBeam targetRef={tableContainerRef} />
 
       <div className="comparison-table-scrollbar overflow-x-auto scroll-snap-type-x-mandatory lg:scroll-snap-type-none relative rounded-xl border border-gray-300 dark:border-gray-700">
-        <div className="w-max lg:w-max lg:mx-auto">
+        <div className="w-max lg:w-full">
           <div
             className={`${gridContainerClasses} sticky top-0 z-20 bg-white/10 dark:bg-black/10 backdrop-blur-lg`}
             style={gridStyle}
