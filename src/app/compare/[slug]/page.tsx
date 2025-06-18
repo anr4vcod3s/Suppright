@@ -10,12 +10,19 @@ export interface FetchedCompareData {
   error?: string;
 }
 
-// Note: The slug is now required.
-interface PageProps {
-  params: { slug: string };
+// Extend params to optionally include promise-like methods.
+interface PageParams extends Record<string, unknown> {
+  slug: string;
+  then?: Promise<unknown>["then"];
+  catch?: Promise<unknown>["catch"];
+  finally?: Promise<unknown>["finally"];
 }
 
-// Revised helper function: converts a URL slug into product IDs and names.
+interface PageProps {
+  params: PageParams;
+}
+
+// Helper function: Converts a URL slug into product IDs and names.
 async function getProductDataFromSlug(
   slug: string
 ): Promise<{ ids: string[]; names: string[]; error?: string }> {
