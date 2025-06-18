@@ -33,7 +33,7 @@ export const TextGenerateEffect = ({
         }
       );
     }
-  }, [isInView]);
+  }, );
 
   const renderWords = () => {
     return (
