@@ -21,7 +21,7 @@ const HeroComponent = () => {
       </div>
 
       <div className="relative z-20 flex flex-col items-center w-11/12 md:w-10/12">
-        <h1 className="text-3xl md:text-5xl font-bold text-foreground relative leading-snug">
+        <h1 className="text-2xl md:text-5xl font-bold text-foreground relative leading-snug">
           India’s Smartest{" "}
           <span className="relative inline-block">
             <motion.span
@@ -42,11 +42,11 @@ const HeroComponent = () => {
           Tool.
         </h1>
 
-        <p className="mb-8 mt-4 w-10/12 text-lg text-muted-foreground md:text-2xl">
-          Compare prices and ingredients of your favourite supplements in one view.
+        <p className="mt-2 mb-8 md:mb-16 md:mt-8 w-10/12 text-muted-foreground md:text-3xl">
+          Compare your favourite supplements in one view.
         </p>
 
-        <div className="w-full flex justify-center">
+        <div className="md:w-5/6 flex justify-center">
           <SearchComponent onProductSelect={handleProductSelect} />
         </div>
       </div>

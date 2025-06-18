@@ -103,7 +103,7 @@ export const SearchComponent = ({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search products to compare..."
-        className="w-full h-14 text-lg placeholder:text-lg rounded-full"
+        className="w-full md:h-14 text-lg placeholder:text-base md:placeholder:text-lg rounded-full"
       />
 
       {localResults.length > 0 && (
