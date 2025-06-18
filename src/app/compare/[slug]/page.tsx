@@ -1,7 +1,7 @@
+// src/app/compare/[slug]/page.tsx
 import React from "react";
 import { Metadata } from "next";
 import { supabase } from "@/lib/supabase/client";
-import { Product } from "@/lib/schemas";
 import ComparePageClient from "./ComparePageClient";
 
 export interface FetchedCompareData {
@@ -9,17 +9,17 @@ export interface FetchedCompareData {
   initialProductIds: string[];
   error?: string;
 }
+
+// Note: The slug is now required.
 interface PageProps {
   params: { slug: string };
 }
 
-// --- REVISED HELPER FUNCTION ---
-// This function converts the URL slug into a list of product IDs and names,
-// with robust error handling.
+// Revised helper function: converts a URL slug into product IDs and names.
 async function getProductDataFromSlug(
-  slug?: string,
+  slug: string
 ): Promise<{ ids: string[]; names: string[]; error?: string }> {
-  if (!slug || !slug.trim()) {
+  if (!slug.trim()) {
     return { ids: [], names: [], error: "No comparison slug provided." };
   }
 
@@ -39,25 +39,12 @@ async function getProductDataFromSlug(
     const { data, error } = await supabase
       .from("products")
       .select("id, name, slug")
-      .in("slug", productSlugs)
-      .returns<Pick<Product, "id" | "name" | "slug">[]>();
+      .in("slug", productSlugs);
 
-    // Handle the Supabase error directly instead of throwing it.
     if (error) {
-      // Log the specific database error to the server console for debugging.
-      console.error("Supabase query error in getProductDataFromSlug:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
-      // Return a user-friendly error message.
-      return {
-        ids: [],
-        names: [],
-        error: `A database error occurred: ${error.message}`,
-      };
+      console.error("Supabase query error in getProductDataFromSlug:", error);
+      return { ids: [], names: [], error: error.message };
     }
-
     if (!data || data.length === 0) {
       return {
         ids: [],
@@ -66,7 +53,7 @@ async function getProductDataFromSlug(
       };
     }
 
-    // Order the results to match the order in the slug for consistency
+    // Order the results to match the slug order.
     const orderedIds: string[] = [];
     const orderedNames: string[] = [];
     const dataMap = new Map(data.map((p) => [p.slug, p]));
@@ -81,7 +68,6 @@ async function getProductDataFromSlug(
 
     return { ids: orderedIds, names: orderedNames };
   } catch (e: unknown) {
-    // This catch block is a safety net for *unexpected* errors.
     const errorMessage =
       e instanceof Error ? e.message : "An unexpected server error occurred.";
     console.error("Caught unexpected exception in getProductDataFromSlug:", e);
@@ -89,7 +75,9 @@ async function getProductDataFromSlug(
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { names: productNamesForMeta, error: errorForMeta } =
     await getProductDataFromSlug(params.slug);
 
@@ -102,12 +90,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const pageTitle =
     productNamesForMeta.length > 0
-      ? `${productNamesForMeta.join(" vs ")}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
+      ? `${productNamesForMeta.join(
+          " vs "
+        )}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
       : "Compare Indian Supplements | SuppCheck";
 
   const metaDescription =
     productNamesForMeta.length > 0
-      ? `Side-by-side comparison of ${productNamesForMeta.join(", ")}. Analyze price per serving, protein content, and more to find the best whey protein in India.`
+      ? `Side-by-side comparison of ${productNamesForMeta.join(
+          ", "
+        )}. Analyze price per serving, protein content, and more to find the best supplement in India.`
       : "Compare supplements to find the best one for your needs on SuppCheck.";
 
   return {
@@ -118,17 +110,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: metaDescription,
     },
     alternates: {
-      canonical: params.slug ? `/compare/${params.slug}` : undefined,
+      canonical: `/compare/${params.slug}`,
     },
   };
 }
 
-export default async function CompareProductsPage({ params }: PageProps) {
-  const {
-    ids,
-    names,
-    error: fetchError,
-  } = await getProductDataFromSlug(params.slug);
+export default async function CompareProductsPage({
+  params,
+}: PageProps): Promise<JSX.Element> {
+  const { ids, names, error: fetchError } = await getProductDataFromSlug(
+    params.slug
+  );
 
   const fetchedData: FetchedCompareData = {
     productNames: names,
