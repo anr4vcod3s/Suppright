@@ -4,25 +4,14 @@ import { Metadata } from "next";
 import { supabase } from "@/lib/supabase/client";
 import ComparePageClient from "./ComparePageClient";
 
+// Data returned from Supabase.
 export interface FetchedCompareData {
   productNames: string[];
   initialProductIds: string[];
   error?: string;
 }
 
-// Extend params to optionally include promise-like methods.
-interface PageParams extends Record<string, unknown> {
-  slug: string;
-  then?: Promise<unknown>["then"];
-  catch?: Promise<unknown>["catch"];
-  finally?: Promise<unknown>["finally"];
-}
-
-interface PageProps {
-  params: PageParams;
-}
-
-// Helper function: Converts a URL slug into product IDs and names.
+// Helper to convert a URL slug into product IDs and names
 async function getProductDataFromSlug(
   slug: string
 ): Promise<{ ids: string[]; names: string[]; error?: string }> {
@@ -60,7 +49,7 @@ async function getProductDataFromSlug(
       };
     }
 
-    // Order the results to match the slug order.
+    // Order the products to match the order given in the slug.
     const orderedIds: string[] = [];
     const orderedNames: string[] = [];
     const dataMap = new Map(data.map((p) => [p.slug, p]));
@@ -84,7 +73,9 @@ async function getProductDataFromSlug(
 
 export async function generateMetadata({
   params,
-}: PageProps): Promise<Metadata> {
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
   const { names: productNamesForMeta, error: errorForMeta } =
     await getProductDataFromSlug(params.slug);
 
@@ -124,7 +115,9 @@ export async function generateMetadata({
 
 export default async function CompareProductsPage({
   params,
-}: PageProps): Promise<JSX.Element> {
+}: {
+  params: { slug: string };
+}): Promise<JSX.Element> {
   const { ids, names, error: fetchError } = await getProductDataFromSlug(
     params.slug
   );
