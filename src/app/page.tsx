@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import HeroComponent from "@/components/HeroComponent";
 import ComparisonDisplay from "@/components/ComparisonDisplay";
 import { WhyTrustSuppRight } from "@/components/TrustRight";
+import FeaturedProducts from "@/components/FeaturedComparisons";
 
 // --- SEO METADATA FOR THE HOMEPAGE ---
 // This tells Google what your main page is about.
@@ -45,6 +46,7 @@ const HomePage = () => {
       <HeroComponent />
       {/* 2. The "How it Works" section to build user trust */}
       <WhyTrustSuppRight />
+      <FeaturedProducts/>
       <ComparisonDisplay />
     </main>
   );

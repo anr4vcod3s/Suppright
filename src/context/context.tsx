@@ -216,6 +216,7 @@ export const useComparison = () => {
     removeProduct: context.removeProduct,
     clearProducts: context.clearProducts,
     isInComparison: context.isInComparison,
+    
   };
 };
 
