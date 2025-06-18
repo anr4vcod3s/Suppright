@@ -10,13 +10,7 @@ export interface FetchedCompareData {
   error?: string;
 }
 
-interface PageProps {
-  params: { slug?: string }; // The param is now 'slug'
-}
-
-// --- REVISED HELPER FUNCTION ---
-// This function converts the URL slug into a list of product IDs and names,
-// with robust error handling.
+// --- Revised Helper Function ---
 async function getProductDataFromSlug(
   slug?: string,
 ): Promise<{ ids: string[]; names: string[]; error?: string }> {
@@ -43,15 +37,8 @@ async function getProductDataFromSlug(
       .in("slug", productSlugs)
       .returns<Pick<Product, "id" | "name" | "slug">[]>();
 
-    // Handle the Supabase error directly instead of throwing it.
     if (error) {
-      // Log the specific database error to the server console for debugging.
-      console.error("Supabase query error in getProductDataFromSlug:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
-      // Return a user-friendly error message.
+      console.error("Supabase query error:", error);
       return {
         ids: [],
         names: [],
@@ -67,7 +54,6 @@ async function getProductDataFromSlug(
       };
     }
 
-    // Order the results to match the order in the slug for consistency
     const orderedIds: string[] = [];
     const orderedNames: string[] = [];
     const dataMap = new Map(data.map((p) => [p.slug, p]));
@@ -82,15 +68,19 @@ async function getProductDataFromSlug(
 
     return { ids: orderedIds, names: orderedNames };
   } catch (e: unknown) {
-    // This catch block is a safety net for *unexpected* errors.
     const errorMessage =
       e instanceof Error ? e.message : "An unexpected server error occurred.";
-    console.error("Caught unexpected exception in getProductDataFromSlug:", e);
+    console.error("Unexpected error:", e);
     return { ids: [], names: [], error: errorMessage };
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+// --- Metadata ---
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
   const { names: productNamesForMeta, error: errorForMeta } =
     await getProductDataFromSlug(params.slug);
 
@@ -124,12 +114,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CompareProductsPage({ params }: PageProps) {
-  const {
-    ids,
-    names,
-    error: fetchError,
-  } = await getProductDataFromSlug(params.slug);
+// --- Page Component ---
+export default async function CompareProductsPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const { ids, names, error: fetchError } = await getProductDataFromSlug(
+    params.slug,
+  );
 
   const fetchedData: FetchedCompareData = {
     productNames: names,
