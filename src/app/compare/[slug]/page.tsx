@@ -9,9 +9,8 @@ export interface FetchedCompareData {
   initialProductIds: string[];
   error?: string;
 }
-
 interface PageProps {
-  params: { slug?: string }; // The param is now 'slug'
+  params: { slug: string };
 }
 
 // --- REVISED HELPER FUNCTION ---
