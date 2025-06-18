@@ -4,14 +4,12 @@ import { Metadata } from "next";
 import { supabase } from "@/lib/supabase/client";
 import ComparePageClient from "./ComparePageClient";
 
-// Data returned from Supabase.
 export interface FetchedCompareData {
   productNames: string[];
   initialProductIds: string[];
   error?: string;
 }
 
-// Helper to convert a URL slug into product IDs and names
 async function getProductDataFromSlug(
   slug: string
 ): Promise<{ ids: string[]; names: string[]; error?: string }> {
@@ -49,7 +47,7 @@ async function getProductDataFromSlug(
       };
     }
 
-    // Order the products to match the order given in the slug.
+    // Order the results to match the slug order.
     const orderedIds: string[] = [];
     const orderedNames: string[] = [];
     const dataMap = new Map(data.map((p) => [p.slug, p]));
@@ -73,18 +71,9 @@ async function getProductDataFromSlug(
 
 export async function generateMetadata({
   params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const { names: productNamesForMeta, error: errorForMeta } =
+}: { params: { slug: string } }): Promise<Metadata> {
+  const { names: productNamesForMeta } =
     await getProductDataFromSlug(params.slug);
-
-  if (errorForMeta && productNamesForMeta.length === 0) {
-    return {
-      title: "Error Loading Comparison | SuppCheck",
-      description: errorForMeta,
-    };
-  }
 
   const pageTitle =
     productNamesForMeta.length > 0
@@ -115,9 +104,7 @@ export async function generateMetadata({
 
 export default async function CompareProductsPage({
   params,
-}: {
-  params: { slug: string };
-}): Promise<JSX.Element> {
+}: { params: { slug: string } }): Promise<JSX.Element> {
   const { ids, names, error: fetchError } = await getProductDataFromSlug(
     params.slug
   );
