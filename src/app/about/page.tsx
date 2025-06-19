@@ -12,7 +12,7 @@ const AboutPage: React.FC = () => {
     <div className="container mt-32 mx-auto max-w-4xl p-4 py-12">
       <div className="text-center">
         <h1 className="mb-4 text-4xl font-bold tracking-tight">
-          About Us
+          About Me
         </h1>
       </div>
 
