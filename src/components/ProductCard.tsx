@@ -114,7 +114,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 if (!currentAffiliateLink) e.preventDefault();
               }}
             >
-              <div className="bg-gradient-to-br from-blue-500 via-indigo-500  dark:from-blue-400 dark:via-indigo-400  py-2 px-3.5  md:py-2.5 md:px-4 rounded-full group-hover/price:scale-105 transition-transform duration-300">
+              <div className="bg-gradient-to-br from-blue-500 via-indigo-500 to-gray-200 dark:from-gray-300 dark:via-indigo-800 dark:to-slate-800  py-2 px-2  md:py-2.5 md:px-4 rounded-full group-hover/price:scale-105 transition-transform duration-300">
                 <div className="flex items-center space-x-2">
                   <span className="font-bold text-white text-base md:text-lg tabular-nums">
                     ₹

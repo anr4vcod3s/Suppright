@@ -11,7 +11,7 @@ export interface FetchedCompareData {
 }
 
 interface PageProps {
-  params: { slug?: string }; // The param is now 'slug'
+  params: Promise<{ slug?: string }>; // Changed: params is now a Promise
 }
 
 // --- REVISED HELPER FUNCTION ---
@@ -91,8 +91,9 @@ async function getProductDataFromSlug(
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const resolvedParams = await params; // Changed: await the params Promise
   const { names: productNamesForMeta, error: errorForMeta } =
-    await getProductDataFromSlug(params.slug);
+    await getProductDataFromSlug(resolvedParams.slug);
 
   if (errorForMeta && productNamesForMeta.length === 0) {
     return {
@@ -119,17 +120,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: metaDescription,
     },
     alternates: {
-      canonical: params.slug ? `/compare/${params.slug}` : undefined,
+      canonical: resolvedParams.slug ? `/compare/${resolvedParams.slug}` : undefined,
     },
   };
 }
 
 export default async function CompareProductsPage({ params }: PageProps) {
+  const resolvedParams = await params; // Changed: await the params Promise
   const {
     ids,
     names,
     error: fetchError,
-  } = await getProductDataFromSlug(params.slug);
+  } = await getProductDataFromSlug(resolvedParams.slug);
 
   const fetchedData: FetchedCompareData = {
     productNames: names,
