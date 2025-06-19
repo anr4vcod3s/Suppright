@@ -8,6 +8,8 @@ import { ComparisonProvider } from "@/context/context";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next"
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Create a client
@@ -26,7 +28,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <QueryClientProvider client={queryClient}>
             <ComparisonProvider>
               <Header />
-              <main>{children}</main>
+              <main>{children}
+                <Analytics/>
+                <SpeedInsights/>
+              </main>
               <Footer />
             </ComparisonProvider>
           </QueryClientProvider>
