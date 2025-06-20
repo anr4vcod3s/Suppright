@@ -41,9 +41,8 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
   const fatsColor = "#F59E0B"; // Amber/Orange
 
   return (
-    <div className="py-3 px-1 flex flex-col items-center justify-around min-h-[140px] space-y-3">
-      {/* Protein - Largest Circular Progress */}
-      <div className="flex flex-col items-center">
+    <div className="py-2 px-0.5 flex flex-col items-center justify-around min-h-[100px] space-y-2 lg:py-3 lg:px-1 lg:min-h-[140px] lg:space-y-3">
+      <div className="transform scale-90 lg:scale-100 flex flex-col items-center">
         <CircularProgress
           percentage={proteinPercent}
           size="lg"
@@ -54,18 +53,16 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
         />
         <span
           style={{ color: proteinColor }}
-          className="mt-1 text-lg font-semibold"
+          className="mt-1 text-base lg:text-lg font-semibold"
         >
           Protein
         </span>
       </div>
-
-      {/* Carbs & Fats - Slightly larger than before, stacked below Protein */}
-      <div className="flex flex-row items-center gap-6">
+      <div className="flex flex-col items-center gap-2 lg:flex-row lg:items-center lg:gap-6">
         <div className="flex flex-col items-center">
           <CircularProgress
             percentage={carbsPercent}
-            size="md" // Slightly larger than sm
+            size="md"
             color={carbsColor}
             backgroundColor="#E5E7EB"
             strokeWidth={6}
@@ -73,7 +70,7 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
           />
           <span
             style={{ color: carbsColor }}
-            className="mt-1 text-lg font-medium"
+            className="mt-1 text-base lg:text-lg font-medium"
           >
             Carbs
           </span>
@@ -81,7 +78,7 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
         <div className="flex flex-col items-center">
           <CircularProgress
             percentage={fatsPercent}
-            size="md" // Slightly larger than sm
+            size="md"
             color={fatsColor}
             backgroundColor="#E5E7EB"
             strokeWidth={6}
@@ -89,7 +86,7 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
           />
           <span
             style={{ color: fatsColor }}
-            className="mt-1 text-lg font-medium"
+            className="mt-1 text-base lg:text-lg font-medium"
           >
             Fat
           </span>

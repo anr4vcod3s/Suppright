@@ -6,19 +6,14 @@ import { useComparison, useComparisonProducts } from '@/context/context';
 
 const FEATURED_PRODUCTS = [
   {
-    id: 'f6b2fc5d-3b64-4715-bbe6-8ba02928e3d8',
-    name: 'Whey Protein',
+    id: 'dfed599b-4a79-442c-bc3c-5258c69a492f',
+    name: 'Isorich Protein',
     brand: 'Avvatar',
   },
   {
     id: 'c138fdaf-2ce2-4bbf-b3cc-153fdea4ceb9',
     name: 'Pure Whey Protein Isolate',
     brand: 'The Whole Truth',
-  },
-  {
-    id: '164e72f8-520c-4e2a-af73-ef0a22b90924',
-    name: 'Dark Chocolate Whey Protein Isolate',
-    brand: 'Wellbeing Nutrition',
   },
   {
     id: '657f53d3-1674-4b7c-9c93-4e6d4aac52df',
@@ -62,20 +57,20 @@ export default function FeaturedProducts() {
     <section className="max-w-6xl mx-auto my-16 px-4">
       <h2 className="text-3xl font-bold mb-10 text-center">Featured Supplement Picks</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         {FEATURED_PRODUCTS.map((product) => (
           <div
             key={product.id}
             className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-md p-6 flex flex-col items-center text-center space-y-3 min-h-[180px]"
           >
-            {/* Placeholder Circle */}
+            {/* Placeholder Circle 
             <div className="w-20 h-20 mb-2 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
               <span className="text-xl font-bold text-neutral-500 dark:text-neutral-400">
                 {product.name[0]}
               </span>
-            </div>
-            <h3 className="text-lg font-semibold leading-tight">{product.name}</h3>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">{product.brand}</p>
+            </div>*/}
+            <h3 className="text-lg font-semibold ">{product.brand}</h3>
+            <p className="text-lg text-neutral-700 dark:text-neutral-300">{product.name}</p>
           </div>
         ))}
       </div>

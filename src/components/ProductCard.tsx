@@ -82,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const availableSizesForDropdown = product.product_sizes || [];
 
   return (
-    <div className="w-full max-w-[320px] h-full flex flex-col text-left ">
+    <div className="w-full max-w-full lg:max-w-[320px] h-full flex flex-col text-left">
       <div className="p-3 h-28 mb-2 flex flex-col justify-start">
         <div className="text-sm font-bold italic text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
           {product.brand}
@@ -91,9 +91,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {product.name}
         </h3>
       </div>
-
-      <div className="relative w-full h-80 mx-auto bg-gray-200/20 dark:bg-gray-700/20 overflow-hidden group transition-all duration-300">
-        <Image
+<div className="relative w-full h-[40vw] lg:h-80 mx-auto bg-gray-200/20 dark:bg-gray-700/20 overflow-hidden group transition-all duration-300">        <Image
           src={product.image_url || PLACEHOLDER_IMAGE_LG}
           alt={formattedProductName}
           fill
@@ -143,7 +141,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
       </div>
-
       <div className="flex justify-center items-center py-2 size-dropdown-container">
         {availableSizesForDropdown.length > 0 && (
           <div className="relative">
@@ -198,7 +195,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
       </div>
-
       <div className="h-[72px] w-full flex items-center justify-center overflow-x-auto no-scrollbar">
         {product.certifications && product.certifications.length > 0 && (
           <div className="flex items-center justify-center flex-nowrap gap-4 md:gap-5">

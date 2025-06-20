@@ -30,7 +30,7 @@ interface ComparisonContextType {
 const ComparisonContext = createContext<ComparisonContextType | undefined>(
   undefined
 );
-const MAX_COMPARISON_PRODUCTS = 4;
+const MAX_COMPARISON_PRODUCTS = 3;
 const STORAGE_KEY = 'comparisonProducts';
 
 const isValidUUID = (id: string): boolean => {

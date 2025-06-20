@@ -6,7 +6,7 @@ import { TextGenerateEffect } from "./ui/text-generate-effect";
 const words = "How SuppRight Works";
 export const WhyTrustSuppRight = () => {
   return (
-    <section className="w-full py-24 bg-background sm:py-32">
+    <section className="w-full py-8 bg-background sm:py-32">
       <div className="container mx-auto px-4">
         <div className="mb-16 text-center">
           <h2 className="font-bold tracking-tighter">

@@ -47,6 +47,16 @@ interface MetricConfig {
 
 const ComparisonTable: React.FC = () => {
   const { products, isLoading, error } = useComparisonProducts();
+  const isMoreThanThree = products.length > 3; // otherwise fixed 1–3 columns
+  const mobileColsClass =
+    products.length === 1
+      ? "grid-cols-1"
+      : products.length === 2
+      ? "grid-cols-2"
+      : "grid-cols-3";
+
+  const scrollCols = "grid-flow-col auto-cols-[calc((100vw-1rem)/3)]";
+
   const { removeProduct } = useComparison();
   const [showIndividualRadarChart, setShowIndividualRadarChart] =
     useState(false);
@@ -57,15 +67,23 @@ const ComparisonTable: React.FC = () => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const productCardHeight = 480;
-  const gridContainerClasses =
-    "grid grid-flow-col auto-cols-[min(320px,85vw)] lg:grid-flow-row lg:grid-cols-[repeat(var(--num-products,1),minmax(0,1fr))]";
+
+  const gridContainerClasses = [
+    "grid",
+    isMoreThanThree ? scrollCols : mobileColsClass,
+    "gap-2",
+    "lg:grid-flow-row",
+    "lg:grid-cols-[repeat(var(--num-products,1),minmax(0,1fr))]",
+    "lg:gap-0",
+  ].join(" ");
+
   const gridStyle = useMemo(
     () =>
       ({
         "--num-products": products.length || 1,
         "--product-card-height": `${productCardHeight}px`,
       } as React.CSSProperties),
-    [products.length, productCardHeight],
+    [products.length, productCardHeight]
   );
 
   useEffect(() => {
@@ -73,8 +91,8 @@ const ComparisonTable: React.FC = () => {
       setSelectedSizes({});
       return;
     }
-    const allProductSizes: Set<number>[] = products.map((p) =>
-      new Set(p.product_sizes_details?.map((s) => s.size_kg) || []),
+    const allProductSizes: Set<number>[] = products.map(
+      (p) => new Set(p.product_sizes_details?.map((s) => s.size_kg) || [])
     );
     const commonSizesKg = allProductSizes.reduce((common, current) => {
       return new Set([...common].filter((size) => current.has(size)));
@@ -89,7 +107,7 @@ const ComparisonTable: React.FC = () => {
         if (targetCommonSize !== null) {
           targetSizeId =
             product.product_sizes_details?.find(
-              (s) => s.size_kg === targetCommonSize,
+              (s) => s.size_kg === targetCommonSize
             )?.id || null;
         } else {
           targetSizeId =
@@ -155,6 +173,22 @@ const ComparisonTable: React.FC = () => {
       description: "Total servings in one product unit.",
     },
     {
+      id: "calories",
+      label: "Calories per Serving",
+      path: "calories",
+      type: "number",
+      unit: "kcal",
+      description: "Energy value per serving.",
+    },
+    {
+      id: "cholesterol",
+      label: "Cholesterol per Serving",
+      path: "cholesterol_mg",
+      type: "number",
+      unit: "mg",
+      description: "Cholesterol content per serving.",
+    },
+    {
       id: "bcaas",
       label: "BCAAs",
       path: "total_bcaas_g",
@@ -191,22 +225,7 @@ const ComparisonTable: React.FC = () => {
       type: "text",
       description: "Method used to process and filter the protein.",
     },
-    {
-      id: "calories",
-      label: "Calories per Serving",
-      path: "calories",
-      type: "number",
-      unit: "kcal",
-      description: "Energy value per serving.",
-    },
-    {
-      id: "cholesterol",
-      label: "Cholesterol per Serving",
-      path: "cholesterol_mg",
-      type: "number",
-      unit: "mg",
-      description: "Cholesterol content per serving.",
-    },
+    
     {
       id: "dietary_info_summary",
       label: "Dietary Information",
@@ -224,7 +243,7 @@ const ComparisonTable: React.FC = () => {
   const priceMetricIds = ["price_per_gram_protein", "price_per_serving_pvm"];
   const priceMetrics = allMetrics.filter((m) => priceMetricIds.includes(m.id));
   const generalMetrics = allMetrics.filter(
-    (m) => !priceMetricIds.includes(m.id),
+    (m) => !priceMetricIds.includes(m.id)
   );
 
   const prepareRadarChartData = (): {
@@ -269,7 +288,7 @@ const ComparisonTable: React.FC = () => {
   const renderMetricValue = (
     metric: MetricConfig,
     product: ComparisonProductData,
-    productIndex: number,
+    productIndex: number
   ): React.ReactNode => {
     const value = metric.path
       ? getNestedPathValue(product, metric.path)
@@ -284,7 +303,7 @@ const ComparisonTable: React.FC = () => {
     const renderSplitDecimalNumber = (
       num: number | string,
       baseClasses: string,
-      fractionalClasses: string,
+      fractionalClasses: string
     ) => {
       const numStr = String(num);
       const parts = numStr.split(".");
@@ -307,7 +326,7 @@ const ComparisonTable: React.FC = () => {
     const renderNumericValue = (
       val: number | null | undefined,
       unit?: string,
-      isCurrency: boolean = false,
+      isCurrency: boolean = false
     ) => {
       if (val == null || isNaN(val)) {
         return (
@@ -325,7 +344,7 @@ const ComparisonTable: React.FC = () => {
           {renderSplitDecimalNumber(
             val.toFixed(isCurrency ? 2 : 1),
             "font-normal text-3xl sm:text-4xl text-gray-800 dark:text-white",
-            "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400",
+            "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400"
           )}
           {!isCurrency && unit && (
             <span className="font-medium text-lg sm:text-xl text-gray-600 dark:text-gray-300">
@@ -344,16 +363,14 @@ const ComparisonTable: React.FC = () => {
         const servingSize = product.serving_size;
         if (proteinG == null || servingSize == null)
           return simpleValueCellWrapper(
-            <span className="text-gray-500 dark:text-gray-400 italic">
-              N/A
-            </span>,
+            <span className="text-gray-500 dark:text-gray-400 italic">N/A</span>
           );
         return simpleValueCellWrapper(
           <div>
             {renderSplitDecimalNumber(
               proteinG.toFixed(1),
               "font-normal text-3xl sm:text-4xl text-gray-800 dark:text-white",
-              "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400",
+              "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400"
             )}
             <span className="font-medium text-lg sm:text-xl text-gray-600 dark:text-gray-300">
               g
@@ -362,23 +379,35 @@ const ComparisonTable: React.FC = () => {
               {" "}
               / {servingSize}g
             </span>
-          </div>,
+          </div>
         );
       case "flavors_display":
         const flavors = product.flavors_list || [];
         if (flavors.length === 0) {
           return simpleValueCellWrapper(
-            <span className="text-gray-500 dark:text-gray-400 italic">
-              N/A
-            </span>,
+            <span className="text-gray-500 dark:text-gray-400 italic">N/A</span>
           );
         }
         return (
-          <div className="py-4 px-3 text-sm sm:text-base h-full flex items-center justify-center">
-            <ul className="space-y-1.5 list-none text-left max-h-[150px] w-full pl-2">
-              {flavors.map((flavor, index) => (
+          <div
+            className="
+        py-5 px-4 text-xs sm:text-sm
+        lg:py-4 lg:px-3 lg:text-base
+        h-full flex items-start justify-center
+        lg:items-center lg:justify-center
+      "
+          >
+            <ul
+              className="
+          list-none text-left w-full
+          pl-3 lg:pl-2
+          space-y-2 lg:space-y-1.5
+          max-h-[200px] lg:max-h-[150px]
+        "
+            >
+              {flavors.map((flavor, i) => (
                 <li
-                  key={index}
+                  key={i}
                   className="font-medium text-gray-700 dark:text-gray-200"
                 >
                   {flavor}
@@ -388,6 +417,7 @@ const ComparisonTable: React.FC = () => {
           </div>
         );
       case "dietary_summary_conditional":
+        // build flags array
         const trueDietaryFlags = [
           product.gluten_free && { label: "Gluten-Free" },
           product.soy_free && { label: "Soy-Free" },
@@ -396,50 +426,75 @@ const ComparisonTable: React.FC = () => {
           product.keto_friendly && { label: "Keto-Friendly" },
         ].filter(Boolean) as { label: string }[];
 
-        const hasAllergens =
-          product.allergens_list && product.allergens_list.length > 0;
+        const hasAllergens = (product.allergens_list ?? []).length > 0;
 
         if (trueDietaryFlags.length === 0 && !hasAllergens) {
           return simpleValueCellWrapper(
             <span className="text-gray-500 dark:text-gray-400 italic">
               No specific dietary info
-            </span>,
+            </span>
           );
         }
+
         return (
-          <div className="py-4 px-4 space-y-3 text-base text-left min-h-[100px] w-full">
-            {trueDietaryFlags.map((flag) => (
-              <div key={flag.label} className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400 mr-2.5 flex-shrink-0" />
+          <div
+            className="
+      py-3 px-2 text-xs sm:text-sm
+      lg:py-4 lg:px-4 lg:text-base
+      space-y-2 lg:space-y-3
+      w-full min-h-[100px]
+      overflow-auto 
+    "
+          >
+            {/* render flags */}
+            {trueDietaryFlags.map((f) => (
+              <div key={f.label} className="flex justify-center">
+                <CheckCircle
+                  className="
+              w-4 h-4 lg:w-5 lg:h-5
+              text-green-500 dark:text-green-400
+              mr-2 lg:mr-2.5 flex-shrink-0
+            "
+                />
                 <span className="font-bold text-gray-700 dark:text-gray-200">
-                  {flag.label}
+                  {f.label}
                 </span>
               </div>
             ))}
+
+            {/* render allergens if any */}
             {hasAllergens && (
               <div
-                className={`pt-3 ${
-                  trueDietaryFlags.length > 0
-                    ? "mt-3 border-t border-gray-300/30 dark:border-gray-700/40"
-                    : ""
-                }`}
+                className={`
+          pt-2 lg:pt-3
+          ${
+            trueDietaryFlags.length > 0
+              ? "mt-2 lg:mt-3 border-t border-gray-300/30 dark:border-gray-700/40"
+              : ""
+          }
+        `}
               >
-                {/* --- 2. USE THE NEW COMPONENT FOR "ALLERGENS" --- */}
                 <div className="mb-1">
                   <ShimmeringHoverInfoCard
                     infoContent="Common allergens declared by the manufacturer. Always check the product label for the most accurate information."
                     placement="top"
                   >
-                    Allergens:
+                    <span className="font-semibold text-gray-700 dark:text-gray-200">
+                      Allergens:
+                    </span>
                   </ShimmeringHoverInfoCard>
                 </div>
-                <ul className="list-none pl-2 text-gray-600 dark:text-gray-300 space-y-1 text-sm">
-                  {product.allergens_list?.map((allergen, index) => (
-                    <li
-                      key={index}
-                      className="font-medium text-gray-600 dark:text-gray-300"
-                    >
-                      {allergen}
+                <ul
+                  className="
+            list-none pl-3 lg:pl-4
+            text-gray-600 dark:text-gray-300
+            space-y-1 lg:space-y-1
+            text-xs sm:text-sm lg:text-sm
+          "
+                >
+                  {product.allergens_list!.map((a, i) => (
+                    <li key={i} className="font-medium">
+                      {a}
                     </li>
                   ))}
                 </ul>
@@ -451,16 +506,14 @@ const ComparisonTable: React.FC = () => {
         const compoundsMap = product.additional_compounds_map;
         if (!compoundsMap || Object.keys(compoundsMap).length === 0) {
           return simpleValueCellWrapper(
-            <span className="text-gray-500 dark:text-gray-400 italic">
-              N/A
-            </span>,
+            <span className="text-gray-500 dark:text-gray-400 ">N/A</span>
           );
         }
         const compoundsArray = Object.entries(compoundsMap).map(
-          ([name, value]) => ({ name, value: String(value) }),
+          ([name, value]) => ({ name, value: String(value) })
         );
         return (
-          <div className="py-4 px-2 flex flex-wrap justify-center items-center gap-x-4 gap-y-2 min-h-[100px]">
+          <div className="py-4 px-2 flex flex-wrap  justify-center items-center gap-x-4 gap-y-2 min-h-[100px]">
             {/* --- 3. USE THE NEW COMPONENT FOR EACH COMPOUND --- */}
             {compoundsArray.map((compound, index) => (
               <ShimmeringHoverInfoCard
@@ -471,7 +524,7 @@ const ComparisonTable: React.FC = () => {
                       {compound.name}
                     </h4>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      Amount:{" "}
+                      {" "}
                       <span className="font-medium text-blue-500 dark:text-blue-400">
                         {compound.value}
                       </span>
@@ -486,17 +539,13 @@ const ComparisonTable: React.FC = () => {
         );
       case "number":
         return simpleValueCellWrapper(
-          renderNumericValue(
-            value as number,
-            metric.unit,
-            metric.unit === "₹",
-          ),
+          renderNumericValue(value as number, metric.unit, metric.unit === "₹")
         );
       case "text":
         return simpleValueCellWrapper(
           <span className="font-normal text-xl text-gray-800 dark:text-white">
             {value as string}
-          </span>,
+          </span>
         );
       case "boolean":
         return simpleValueCellWrapper(
@@ -504,13 +553,13 @@ const ComparisonTable: React.FC = () => {
             <Check className="w-8 h-8 text-green-500" />
           ) : (
             <X className="w-8 h-8 text-red-500" />
-          ),
+          )
         );
       default:
         const exhaustiveCheck: never = metric.type;
         console.error("Unhandled metric type:", exhaustiveCheck);
         return simpleValueCellWrapper(
-          <span className="text-red-500 italic">Type Error</span>,
+          <span className="text-red-500 italic">Type Error</span>
         );
     }
   };
@@ -519,14 +568,17 @@ const ComparisonTable: React.FC = () => {
     <div
       key={metric.id}
       className={`${
-        metricIndex % 2 === 0
-          ? "bg-white/5 dark:bg-black/5"
-          : "bg-transparent"
+        metricIndex % 2 === 0 ? "bg-white/5 dark:bg-black/5" : "bg-transparent"
       } backdrop-blur-sm`}
     >
       {/* Label Section */}
       <div
-        className=" font-semibold flex justify-center items-center group relative px-3 sm:px-5 lg:px-7"
+        className="
+    sticky left-0 flex-none z-10
+    font-semibold flex justify-center items-center group
+    px-3 sm:px-5 lg:px-7
+    bg-inherit backdrop-blur-sm
+  "
         title={metric.description}
       >
         <div className="w-full sm:w-4/5 lg:w-3/5 flex justify-center items-center text-center px-4 py-3 sm:px-5 sm:py-3.5 lg:px-6 lg:py-4 rounded-full border border-gray-400/20 dark:border-gray-700 bg-white/5 dark:bg-black/10 shadow-sm">
@@ -650,8 +702,12 @@ const ComparisonTable: React.FC = () => {
     >
       <ScrollBasedTracingBeam targetRef={tableContainerRef} />
 
-      <div className="comparison-table-scrollbar overflow-x-auto scroll-snap-type-x-mandatory lg:scroll-snap-type-none relative rounded-xl border border-gray-300 dark:border-gray-700">
-        <div className="w-max lg:w-full">
+      <div
+        className="comparison-table-scrollbar overflow-x-auto
+	                scroll-snap-type-x-mandatory lg:scroll-snap-type-none
+	                relative rounded-xl border border-gray-300 dark:border-gray-700"
+      >
+        <div className="w-full lg:w-full">
           <div
             className={`${gridContainerClasses} sticky top-0 z-20 bg-white/10 dark:bg-black/10 backdrop-blur-lg`}
             style={gridStyle}
@@ -672,7 +728,6 @@ const ComparisonTable: React.FC = () => {
               />
             ))}
           </div>
-
           <div
             className="text-center py-3.5 sm:py-4 sticky z-10 bg-white/30 dark:bg-black/30 backdrop-blur-md"
             style={{ top: `var(--product-card-height)` }}
@@ -694,14 +749,10 @@ const ComparisonTable: React.FC = () => {
               )}
             </button>
           </div>
-
           {showPriceDetails &&
-            priceMetrics.map((metric, index) =>
-              renderMetricRow(metric, index),
-            )}
-
+            priceMetrics.map((metric, index) => renderMetricRow(metric, index))}
           {generalMetrics.map((metric, index) =>
-            renderMetricRow(metric, index),
+            renderMetricRow(metric, index)
           )}
         </div>
       </div>
