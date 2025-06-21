@@ -26,7 +26,7 @@ export function ThemeToggle() {
     >
       <Sun
         className="
-          h-3 w-3           /* mobile */
+          h-2 w-2           /* mobile */
           md:h-6 md:w-6     /* desktop */
           rotate-0 scale-100 
           transition-all 

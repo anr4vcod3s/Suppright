@@ -28,15 +28,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <QueryClientProvider client={queryClient}>
             <ComparisonProvider>
               <Header />
-              <main>{children}
+              <main className="md:w-4/5 justify-self-center">{children}
                 <Analytics/>
                 <SpeedInsights/>
               </main>
-              <Footer />
             </ComparisonProvider>
           </QueryClientProvider>
         </ThemeProvider>
-      </body>
+        <Footer />
+      </body>              
+
     </html>
   );
 }

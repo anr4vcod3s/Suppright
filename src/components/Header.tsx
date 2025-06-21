@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -35,22 +34,21 @@ const Header: React.FC = () => {
 
   return (
     <div
-      className="fixed top-1 left-0 w-full px-2 sm:px-4 z-50
-                 transition-transform duration-300"
+      className="fixed top-1 left-0 w-full px-2 sm:px-4 z-50 transition-transform duration-300"
       style={{ transform: visible ? "translateY(0)" : "translateY(-120%)" }}
     >
       <header
         className="
           w-full max-w-[90rem] mx-auto flex items-center
-          justify-between space-x-2 sm:space-x-4
-          px-3 sm:px-6 py-2 sm:py-3
+          justify-between space-x-2 sm:space-x-3
+          px-2 sm:px-4 py-1.5 sm:py-2
           bg-background/80 backdrop-blur-lg
-          rounded-full border border-border shadow-md
+          rounded-full border border-border shadow-sm
         "
       >
         {/* Logo */}
         <Link href="/">
-          <div className="text-lg sm:text-2xl font-bold italic cursor-pointer text-foreground">
+          <div className="text-base sm:text-xl font-semibold italic cursor-pointer text-foreground">
             SuppRight
           </div>
         </Link>
@@ -58,8 +56,8 @@ const Header: React.FC = () => {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Search & Theme Toggle */}
-        <div className="flex items-center space-x-2 sm:space-x-4">
+        {/* Search or Button & Theme Toggle */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {isComparePage ? (
             <div className="w-full sm:w-64 md:w-72">
               <SearchComponent onProductSelect={handleProductSelect} />
@@ -68,15 +66,13 @@ const Header: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() =>
-                window.scrollTo({ top: 0, behavior: "smooth" })
-              }
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               aria-label="Scroll to top / Search"
-              className="relative h-12 w-12 rounded-full border 
+              className="relative h-9 w-9 rounded-full border 
                          text-foreground border-foreground/30 
                          hover:border-foreground/50 transition-colors"
             >
-              <Search className="h-6 w-6" />
+              <Search className="h-5 w-5" />
             </Button>
           )}
 

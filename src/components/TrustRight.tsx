@@ -9,7 +9,7 @@ export const WhyTrustSuppRight = () => {
     <section className="w-full py-8 bg-background sm:py-32">
       <div className="container mx-auto px-4">
         <div className="mb-16 text-center">
-          <h2 className="font-bold tracking-tighter">
+          <h2 className="text-2xl md:text-4xl tracking-tighter">
             <TextGenerateEffect words={words} />
           </h2>
           <p className="mt-4 text-lg text-muted-foreground md:text-xl">

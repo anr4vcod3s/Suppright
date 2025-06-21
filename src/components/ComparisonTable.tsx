@@ -225,7 +225,7 @@ const ComparisonTable: React.FC = () => {
       type: "text",
       description: "Method used to process and filter the protein.",
     },
-    
+
     {
       id: "dietary_info_summary",
       label: "Dietary Information",
@@ -295,7 +295,7 @@ const ComparisonTable: React.FC = () => {
       : undefined;
 
     const simpleValueCellWrapper = (content: React.ReactNode) => (
-      <div className="py-4 sm:py-5 lg:py-6 px-3 sm:px-4 lg:px-5 text-base sm:text-lg lg:text-xl text-gray-700 dark:text-gray-200 h-full flex items-center justify-center text-center">
+      <div className="py-4 sm:py-5 lg:py-6 px-3 sm:px-4 lg:px-5 text-sm sm:text-base lg:text-lg text-gray-700 dark:text-gray-200 h-full flex items-center justify-center text-center">
         {content}
       </div>
     );
@@ -330,24 +330,26 @@ const ComparisonTable: React.FC = () => {
     ) => {
       if (val == null || isNaN(val)) {
         return (
-          <span className="text-gray-500 dark:text-gray-400 italic">N/A</span>
+          <span className="text-gray-500 dark:text-gray-400 italic text-sm sm:text-base lg:text-lg">
+            N/A
+          </span>
         );
       }
 
       return (
         <div className="flex items-baseline justify-center gap-1.5">
           {isCurrency && (
-            <span className="font-medium text-2xl sm:text-3xl text-gray-800 dark:text-white tabular-nums">
+            <span className="font-medium text-lg sm:text-xl lg:text-2xl text-gray-800 dark:text-white tabular-nums">
               {unit}
             </span>
           )}
           {renderSplitDecimalNumber(
             val.toFixed(isCurrency ? 2 : 1),
-            "font-normal text-3xl sm:text-4xl text-gray-800 dark:text-white",
-            "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400"
+            "font-normal text-xl sm:text-2xl lg:text-3xl text-gray-800 dark:text-white",
+            "text-lg sm:text-xl lg:text-2xl text-gray-500 dark:text-gray-400"
           )}
           {!isCurrency && unit && (
-            <span className="font-medium text-lg sm:text-xl text-gray-600 dark:text-gray-300">
+            <span className="font-medium text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300">
               {unit}
             </span>
           )}
@@ -369,13 +371,13 @@ const ComparisonTable: React.FC = () => {
           <div>
             {renderSplitDecimalNumber(
               proteinG.toFixed(1),
-              "font-normal text-3xl sm:text-4xl text-gray-800 dark:text-white",
-              "text-2xl sm:text-3xl text-gray-500 dark:text-gray-400"
+              "font-normal text-xl sm:text-2xl lg:text-3xl text-gray-800 dark:text-white",
+              "text-lg sm:text-xl lg:text-2xl text-gray-500 dark:text-gray-400"
             )}
-            <span className="font-medium text-lg sm:text-xl text-gray-600 dark:text-gray-300">
+            <span className="font-medium text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300">
               g
             </span>
-            <span className="text-gray-500 dark:text-gray-400 text-base sm:text-lg tabular-nums">
+            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm lg:text-base tabular-nums">
               {" "}
               / {servingSize}g
             </span>
@@ -389,22 +391,8 @@ const ComparisonTable: React.FC = () => {
           );
         }
         return (
-          <div
-            className="
-        py-5 px-4 text-xs sm:text-sm
-        lg:py-4 lg:px-3 lg:text-base
-        h-full flex items-start justify-center
-        lg:items-center lg:justify-center
-      "
-          >
-            <ul
-              className="
-          list-none text-left w-full
-          pl-3 lg:pl-2
-          space-y-2 lg:space-y-1.5
-          max-h-[200px] lg:max-h-[150px]
-        "
-            >
+          <div className="py-4 sm:py-5 lg:py-6 px-3 sm:px-4 lg:px-5 text-xs sm:text-sm lg:text-base h-full flex items-start justify-center lg:items-center lg:justify-center">
+            <ul className="list-none text-left w-full pl-2 sm:pl-3 lg:pl-2 space-y-1.5 sm:space-y-2 lg:space-y-1.5 max-h-[180px] sm:max-h-[200px] lg:max-h-[150px]">
               {flavors.map((flavor, i) => (
                 <li
                   key={i}
@@ -437,25 +425,11 @@ const ComparisonTable: React.FC = () => {
         }
 
         return (
-          <div
-            className="
-      py-3 px-2 text-xs sm:text-sm
-      lg:py-4 lg:px-4 lg:text-base
-      space-y-2 lg:space-y-3
-      w-full min-h-[100px]
-      overflow-auto 
-    "
-          >
+          <div className="py-4 sm:py-5 lg:py-6 px-3 sm:px-4 lg:px-5 text-xs sm:text-sm lg:text-base space-y-2 lg:space-y-3 w-full min-h-[100px] overflow-auto">
             {/* render flags */}
             {trueDietaryFlags.map((f) => (
               <div key={f.label} className="flex justify-center">
-                <CheckCircle
-                  className="
-              w-4 h-4 lg:w-5 lg:h-5
-              text-green-500 dark:text-green-400
-              mr-2 lg:mr-2.5 flex-shrink-0
-            "
-                />
+                <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5 text-green-500 dark:text-green-400 mr-2 lg:mr-2.5 flex-shrink-0" />
                 <span className="font-bold text-gray-700 dark:text-gray-200">
                   {f.label}
                 </span>
@@ -465,14 +439,11 @@ const ComparisonTable: React.FC = () => {
             {/* render allergens if any */}
             {hasAllergens && (
               <div
-                className={`
-          pt-2 lg:pt-3
-          ${
-            trueDietaryFlags.length > 0
-              ? "mt-2 lg:mt-3 border-t border-gray-300/30 dark:border-gray-700/40"
-              : ""
-          }
-        `}
+                className={`pt-2 lg:pt-3 ${
+                  trueDietaryFlags.length > 0
+                    ? "mt-2 lg:mt-3 border-t border-gray-300/30 dark:border-gray-700/40"
+                    : ""
+                }`}
               >
                 <div className="mb-1">
                   <ShimmeringHoverInfoCard
@@ -484,14 +455,7 @@ const ComparisonTable: React.FC = () => {
                     </span>
                   </ShimmeringHoverInfoCard>
                 </div>
-                <ul
-                  className="
-            list-none pl-3 lg:pl-4
-            text-gray-600 dark:text-gray-300
-            space-y-1 lg:space-y-1
-            text-xs sm:text-sm lg:text-sm
-          "
-                >
+                <ul className="list-none pl-3 lg:pl-4 text-gray-600 dark:text-gray-300 space-y-1 lg:space-y-1 text-xs sm:text-sm lg:text-sm">
                   {product.allergens_list!.map((a, i) => (
                     <li key={i} className="font-medium">
                       {a}
@@ -506,15 +470,14 @@ const ComparisonTable: React.FC = () => {
         const compoundsMap = product.additional_compounds_map;
         if (!compoundsMap || Object.keys(compoundsMap).length === 0) {
           return simpleValueCellWrapper(
-            <span className="text-gray-500 dark:text-gray-400 ">N/A</span>
+            <span className="text-gray-500 dark:text-gray-400">N/A</span>
           );
         }
         const compoundsArray = Object.entries(compoundsMap).map(
           ([name, value]) => ({ name, value: String(value) })
         );
         return (
-          <div className="py-4 px-2 flex flex-wrap  justify-center items-center gap-x-4 gap-y-2 min-h-[100px]">
-            {/* --- 3. USE THE NEW COMPONENT FOR EACH COMPOUND --- */}
+          <div className="py-4 sm:py-5 lg:py-6 px-3 sm:px-4 lg:px-5 flex flex-wrap justify-center items-center gap-x-4 gap-y-2 min-h-[100px]">
             {compoundsArray.map((compound, index) => (
               <ShimmeringHoverInfoCard
                 key={`${product.id}-compound-${index}`}
@@ -524,7 +487,6 @@ const ComparisonTable: React.FC = () => {
                       {compound.name}
                     </h4>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {" "}
                       <span className="font-medium text-blue-500 dark:text-blue-400">
                         {compound.value}
                       </span>
@@ -543,7 +505,7 @@ const ComparisonTable: React.FC = () => {
         );
       case "text":
         return simpleValueCellWrapper(
-          <span className="font-normal text-xl text-gray-800 dark:text-white">
+          <span className="font-normal text-base sm:text-lg lg:text-xl text-gray-800 dark:text-white">
             {value as string}
           </span>
         );
