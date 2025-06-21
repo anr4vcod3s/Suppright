@@ -55,9 +55,9 @@ export default function FeaturedProducts() {
 
   return (
     <section className="max-w-6xl mx-auto my-16 px-4">
-      <h2 className="text-4xl font-bold mb-10 text-center">Featured Supplement Picks</h2>
+      <h2 className="text-2xl md:text-4xl font-bold mb-10 text-center">Featured Supplement Picks</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+<div className="w-4/5 mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
         {FEATURED_PRODUCTS.map((product) => (
           <div
             key={product.id}
@@ -78,7 +78,7 @@ export default function FeaturedProducts() {
       <div className="flex justify-center">
         <button
           onClick={handleCompareFeatured}
-          className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-green-500 text-white font-semibold text-lg shadow-xl hover:scale-105 transition-transform"
+          className="px-8 py-3 rounded-full bg-gradient-to-r from-indigo-400/70 via-indigo-600/70 to-indigo-400/70 text-white font-semibold text-lg shadow-xl hover:scale-105 transition-transform"
         >
           Compare These
         </button>

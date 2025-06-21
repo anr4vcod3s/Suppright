@@ -39,7 +39,7 @@ const Header: React.FC = () => {
     >
       <header
         className="
-          w-full max-w-[90rem] mx-auto flex items-center
+          md:w-10/12 mx-auto flex items-center
           justify-between space-x-2 sm:space-x-3
           px-2 sm:px-4 py-1.5 sm:py-2
           bg-background/80 backdrop-blur-lg
@@ -68,11 +68,11 @@ const Header: React.FC = () => {
               size="icon"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               aria-label="Scroll to top / Search"
-              className="relative h-9 w-9 rounded-full border 
+              className="relative h-10 w-10 rounded-full border 
                          text-foreground border-foreground/30 
                          hover:border-foreground/50 transition-colors"
             >
-              <Search className="h-5 w-5" />
+              <Search />
             </Button>
           )}
 

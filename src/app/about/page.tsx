@@ -11,28 +11,43 @@ const AboutPage: React.FC = () => {
   return (
     <div className="container mt-32 mx-auto max-w-4xl p-4 py-12">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold tracking-tight">
-          About Me
-        </h1>
+        <h1 className="mb-4 text-4xl font-bold tracking-tight">About Me</h1>
       </div>
 
       <div className="prose text-lg prose-lg mx-auto mt-10 max-w-none dark:prose-invert">
-        {/* <Image src="/path/to/your-photo.jpg" alt="Your Name" width={150} height={150} className="mx-auto rounded-full" /> */}
+        <p className="text-center">
+          I couldn’t find a clean way to compare supplements in India, so I
+          built one.
+        </p>
 
-        <p className="text-center ">
-          Welcome! I&apos;m <strong>Arnav</strong>, the founder of
-          Suppright.
-        </p><br></br>
+        <br />
+
         <p className="text-center">
-          My own fitness journey led me to a common point of frustration:
-          choosing the right supplement. I was looking for a straightforward way
-          to compare products based on pure data—what’s inside and what it
-          costs.
-        </p><br></br>
+          Hi! I’m <strong>Arnav</strong>, a computer science student and fitness
+          enthusiast. One day between sets, a friend and I argued over which
+          protein was better. I checked online and realized that there was no real
+          tool for honest supplement comparisons in the Indian market.
+        </p>
+
+        <br />
+
         <p className="text-center">
-          When I realized the tool I needed for the Indian market didn&apos;t
-          exist, I decided to create it. Suppright is the result: a simple,
-          data-first platform designed to empower your decisions.
+          That’s why I created Suppright - a simple, data-first tool that helps
+          you cut through the noise and make smarter supplement choices.
+        </p>
+
+        <br />
+
+        <p className="text-center">
+          I lift a lot, think a lot more, and reply to emails. Get in touch
+          <a
+            href="mailto:contact@suppright.com"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            {" "}
+            contact@suppright.com
+          </a>
+          .
         </p>
       </div>
 
@@ -60,7 +75,9 @@ const AboutPage: React.FC = () => {
             <div className="mb-4 rounded-full bg-green-100 p-3 dark:bg-green-900/50">
               <Scale className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Unbiased & Transparent</h3>
+            <h3 className="mb-2 text-xl font-semibold">
+              Unbiased & Transparent
+            </h3>
             <p className="text-gray-600 dark:text-gray-400">
               Our commitment is to you, the user. We&apos;re transparent about
               our affiliate model, which supports the site but never influences
@@ -86,8 +103,7 @@ const AboutPage: React.FC = () => {
 
       <div className="text-center">
         <p className="text-gray-700 dark:text-gray-300">
-          We believe in full transparency. For details on how our site operates,
-          please review our{" "}
+          For details on how the site operates, please review our {" "}
           <Link
             href="/tos"
             className="font-medium text-blue-600 hover:underline dark:text-blue-500"

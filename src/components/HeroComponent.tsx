@@ -42,21 +42,21 @@ const HeroComponent = () => {
   return (
     <div
       id="hero"
-      className="relative w-full h-[92vh] flex flex-col items-center justify-center text-center bg-background"
+      className="relative w-full h-[96vh] flex flex-col items-center justify-center text-center bg-background"
     >
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <BackgroundBeams />
       </div>
 
-      <div className="absolute top-1/3 md:top-1/3 z-20 flex flex-col items-center w-11/12 md:w-10/12">
+      <div className="sm:absolute md:top-0 sm:top-1/3 md:relative z-20 flex flex-col items-center w-11/12 md:w-10/12">
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground relative leading-snug">
-          India’s Smartest{" "}
+          India’s Smartest {""}
           <span className="relative inline-block">
             <motion.span
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="absolute -inset-x-1.5 -inset-y-0.5 z-[-1] origin-left rounded-2xl md:-inset-y-2"
+              className="absolute -inset-x-1.5 -inset-y-0.5 md:-inset-1 z-[-1] origin-left rounded-xl "
               style={{
                 background:
                   "linear-gradient(135deg, rgba(59,130,246,0.4), rgba(96,165,250,0.4))",
@@ -71,12 +71,12 @@ const HeroComponent = () => {
         </h1>
 
         <p className="mt-2 mb-2 md:mb-8 md:mt-4 md:w-10/12 text-muted-foreground text-sm md:text-xl">
-          Compare your favourite supplements in one view
+          Compare your favourite protein supplements in one view
         </p>
 
         <div
           ref={searchContainerRef}
-          className="md:w-5/6 flex justify-center"
+          className="md:w-3/5 flex justify-center"
         >
           <SearchComponent onProductSelect={handleProductSelect} />
         </div>

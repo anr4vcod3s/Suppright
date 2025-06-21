@@ -72,7 +72,7 @@ const ComparePageClient: React.FC<ComparePageClientProps> = ({
   }
 
   return (
-    <main className="container mx-auto p-4">
+    <main className="container mx-auto p-4 md:w-5/6">
       <h1 className="mb-8 mt-28 text-center text-base font-bold md:text-4xl">
         {onPageDisplayTitle}
       </h1>
