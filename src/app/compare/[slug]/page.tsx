@@ -30,7 +30,7 @@ async function getProductDataFromSlug(
   slug?: string
 ): Promise<{
   ids: string[];
-  names: string[];
+  names: string[]; // This will now contain "Brand Product Name"
   products: CompareProductMeta[];
   error?: string;
 }> {
@@ -41,19 +41,19 @@ async function getProductDataFromSlug(
   if (productSlugs.length === 0) {
     return { ids: [], names: [], products: [], error: "Invalid comparison slug." };
   }
-  if (productSlugs.length > 3) {
+  if (productSlugs.length > 4) { // Max 4 as agreed
     return {
       ids: [],
       names: [],
       products: [],
-      error: "Too many products for comparison (max 3).",
+      error: "Too many products for comparison (max 4).",
     };
   }
 
   try {
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, slug, image_url, brand")
+      .select("id, name, slug, image_url, brand") // Ensure brand is selected
       .in("slug", productSlugs)
       .returns<CompareProductMeta[]>();
 
@@ -84,7 +84,8 @@ async function getProductDataFromSlug(
       const p = mapBySlug.get(s);
       if (p) {
         orderedIds.push(p.id);
-        orderedNames.push(p.name);
+        // Combine brand and name for the display string
+        orderedNames.push(`${p.brand} ${p.name}`); // <-- CRITICAL CHANGE HERE
         orderedProducts.push(p);
       }
     });
