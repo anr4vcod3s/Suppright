@@ -9,19 +9,21 @@ interface ComparePageClientProps {
   fetchedData: FetchedCompareData;
 }
 
+
 const ComparePageClient: React.FC<ComparePageClientProps> = ({
   fetchedData,
 }) => {
   const { initialProductIds, error: initialError } = fetchedData;
   const { addProduct, productIds, clearProducts } = useComparison();
-  const { products } = useComparisonProducts();
+  const { products } = useComparisonProducts(); // This 'products' array has p.name and p.brand separate
 
   useEffect(() => {
-    // 1) Build a clean H1 text (no year)
-    let h1Text = "Compare Indian Supplements";
+    // 1) Build a clean H1 text (now including brand name)
+    let h1Text = "Compare Indian Supplements"; // Default if no products
     if (products.length > 0) {
-      const names = products.map((p) => p.name);
-      h1Text = `${names.join(" vs ")}`;
+      // CRITICAL CHANGE: Map to "Brand Product Name"
+      const namesWithBrands = products.map((p) => `${p.brand} ${p.name}`);
+      h1Text = `${namesWithBrands.join(" vs ")}`;
     }
 
     // 2) Build full title for <title> tag (with year)
@@ -32,7 +34,7 @@ const ComparePageClient: React.FC<ComparePageClientProps> = ({
     // 3) Patch the existing H1 on the page
     const h1 = document.getElementById("compare-heading");
     if (h1) h1.textContent = h1Text;
-  }, [products, initialError]);
+  }, [products]);
 
   useEffect(() => {
     const match = initialProductIds.length === productIds.length &&

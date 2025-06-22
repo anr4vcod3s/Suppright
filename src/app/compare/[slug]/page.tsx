@@ -100,7 +100,7 @@ async function getProductDataFromSlug(
 
 // ----- Metadata for SEO -----
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://suppright.com";
   const { slug } = await params;
   const cleanSlug = slug ? encodeURIComponent(slug) : "";
   const { names: productNames } = await getProductDataFromSlug(slug);
