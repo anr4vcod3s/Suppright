@@ -142,20 +142,19 @@ export default async function CompareProductsPage({ params }: PageProps) {
       ? `${names.join(" vs ")}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
       : "Compare Indian Supplements | SuppCheck";
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://suppright.com";
   const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: names.map((name, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "Product",
-        name,
-        url: `${baseUrl}/compare/${encodeURIComponent(slug || "")}`,
-      },
-    })),
-  };
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: names.map((name, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      name,
+      url: `${baseUrl}/compare/${encodeURIComponent(slug || "")}`,
+    },
+  })),
+};
 
   return (
     <>
