@@ -84,10 +84,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div className="w-full max-w-full lg:max-w-[320px] h-full flex flex-col text-left">
       <div className="p-3 h-28 mb-2 flex flex-col justify-start">
-        <div className="text-sm font-bold italic text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+        <div className="text-sm font-semibold md:font-bold italic text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
           {product.brand}
         </div>
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-white leading-tight line-clamp-3">
+        <h3 className="text-base md:text-xl font-semibold text-gray-800 dark:text-white leading-tight line-clamp-none">
           {product.name}
         </h3>
       </div>

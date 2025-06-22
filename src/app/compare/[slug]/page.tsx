@@ -1,8 +1,19 @@
+// app/compare/[slug]/page.tsx
 import React from "react";
+import Head from "next/head";
+import Script from "next/script";
 import { Metadata } from "next";
 import { supabase } from "@/lib/supabase/client";
-import { Product } from "@/lib/schemas";
 import ComparePageClient from "./ComparePageClient";
+
+// ----- Types -----
+export interface CompareProductMeta {
+  id: string;
+  name: string;
+  slug: string;
+  image_url?: string | null;
+  brand?: string | null;
+}
 
 export interface FetchedCompareData {
   productNames: string[];
@@ -11,133 +22,171 @@ export interface FetchedCompareData {
 }
 
 interface PageProps {
-  params: Promise<{ slug?: string }>; // Changed: params is now a Promise
+  params: Promise<{ slug?: string }>;
 }
 
-// --- REVISED HELPER FUNCTION ---
-// This function converts the URL slug into a list of product IDs and names,
-// with robust error handling.
+// ----- Data Fetcher -----
 async function getProductDataFromSlug(
-  slug?: string,
-): Promise<{ ids: string[]; names: string[]; error?: string }> {
+  slug?: string
+): Promise<{
+  ids: string[];
+  names: string[];
+  products: CompareProductMeta[];
+  error?: string;
+}> {
   if (!slug || !slug.trim()) {
-    return { ids: [], names: [], error: "No comparison slug provided." };
+    return { ids: [], names: [], products: [], error: "No comparison slug provided." };
   }
-
   const productSlugs = slug.split("-vs-");
   if (productSlugs.length === 0) {
-    return { ids: [], names: [], error: "Invalid comparison slug." };
+    return { ids: [], names: [], products: [], error: "Invalid comparison slug." };
   }
-  if (productSlugs.length > 4) {
+  if (productSlugs.length > 3) {
     return {
       ids: [],
       names: [],
-      error: "Too many products for comparison (max 4).",
+      products: [],
+      error: "Too many products for comparison (max 3).",
     };
   }
 
   try {
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, slug")
+      .select("id, name, slug, image_url, brand")
       .in("slug", productSlugs)
-      .returns<Pick<Product, "id" | "name" | "slug">[]>();
+      .returns<CompareProductMeta[]>();
 
-    // Handle the Supabase error directly instead of throwing it.
     if (error) {
-      // Log the specific database error to the server console for debugging.
-      console.error("Supabase query error in getProductDataFromSlug:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
-      // Return a user-friendly error message.
+      console.error("Supabase error:", error);
       return {
         ids: [],
         names: [],
-        error: `A database error occurred: ${error.message}`,
+        products: [],
+        error: `Database error: ${error.message}`,
       };
     }
-
     if (!data || data.length === 0) {
       return {
         ids: [],
         names: [],
-        error: "One or more products could not be found.",
+        products: [],
+        error: "One or more products not found.",
       };
     }
 
-    // Order the results to match the order in the slug for consistency
     const orderedIds: string[] = [];
     const orderedNames: string[] = [];
-    const dataMap = new Map(data.map((p) => [p.slug, p]));
+    const orderedProducts: CompareProductMeta[] = [];
+    const mapBySlug = new Map(data.map((p) => [p.slug, p]));
 
     productSlugs.forEach((s) => {
-      const product = dataMap.get(s);
-      if (product) {
-        orderedIds.push(product.id);
-        orderedNames.push(product.name);
+      const p = mapBySlug.get(s);
+      if (p) {
+        orderedIds.push(p.id);
+        orderedNames.push(p.name);
+        orderedProducts.push(p);
       }
     });
 
-    return { ids: orderedIds, names: orderedNames };
+    return { ids: orderedIds, names: orderedNames, products: orderedProducts };
   } catch (e: unknown) {
-    // This catch block is a safety net for *unexpected* errors.
-    const errorMessage =
-      e instanceof Error ? e.message : "An unexpected server error occurred.";
-    console.error("Caught unexpected exception in getProductDataFromSlug:", e);
-    return { ids: [], names: [], error: errorMessage };
+    const msg = e instanceof Error ? e.message : "Unexpected server error.";
+    console.error("Unhandled exception:", e);
+    return { ids: [], names: [], products: [], error: msg };
   }
 }
 
+// ----- Metadata for SEO -----
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await params; // Changed: await the params Promise
-  const { names: productNamesForMeta, error: errorForMeta } =
-    await getProductDataFromSlug(resolvedParams.slug);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com";
+  const { slug } = await params;
+  const cleanSlug = slug ? encodeURIComponent(slug) : "";
+  const { names: productNames } = await getProductDataFromSlug(slug);
 
-  if (errorForMeta && productNamesForMeta.length === 0) {
-    return {
-      title: "Error Loading Comparison | SuppCheck",
-      description: errorForMeta,
-    };
-  }
-
-  const pageTitle =
-    productNamesForMeta.length > 0
-      ? `${productNamesForMeta.join(" vs ")}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
+  const title =
+    productNames.length > 0
+      ? `${productNames.join(" vs ")}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
       : "Compare Indian Supplements | SuppCheck";
 
-  const metaDescription =
-    productNamesForMeta.length > 0
-      ? `Side-by-side comparison of ${productNamesForMeta.join(", ")}. Analyze price per serving, protein content, and more to find the best whey protein in India.`
-      : "Compare supplements to find the best one for your needs on SuppCheck.";
+  const description =
+    productNames.length > 0
+      ? `Compare ${productNames.join(", ")} side-by-side: price, protein content, amino profiles and more.`
+      : "Compare supplements on SuppCheck for price, macros, and amino profile.";
 
   return {
-    title: pageTitle,
-    description: metaDescription,
-    openGraph: {
-      title: pageTitle,
-      description: metaDescription,
-    },
+    title,
+    description,
     alternates: {
-      canonical: resolvedParams.slug ? `/compare/${resolvedParams.slug}` : undefined,
+      canonical: `${baseUrl}/compare/${cleanSlug}`,
+    },
+    openGraph: {
+      title,
+      description,
     },
   };
 }
 
+// ----- Page Component -----
 export default async function CompareProductsPage({ params }: PageProps) {
-  const resolvedParams = await params; // Changed: await the params Promise
-  const {
-    ids,
-    names,
-    error: fetchError,
-  } = await getProductDataFromSlug(resolvedParams.slug);
-
+  const { slug } = await params;
+  const { ids, names, error } = await getProductDataFromSlug(slug);
   const fetchedData: FetchedCompareData = {
     productNames: names,
     initialProductIds: ids,
-    error: fetchError,
+    error,
   };
 
-  return <ComparePageClient fetchedData={fetchedData} />;
+  const pageTitle =
+    names.length > 0
+      ? `${names.join(" vs ")}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
+      : "Compare Indian Supplements | SuppCheck";
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: names.map((name, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Product",
+        name,
+        url: `${baseUrl}/compare/${encodeURIComponent(slug || "")}`,
+      },
+    })),
+  };
+
+  return (
+    <>
+      {/* <link rel="canonical"> for crawlers who don’t parse alternates */}
+      <Head>
+        <link
+          rel="canonical"
+          href={`${baseUrl}/compare/${encodeURIComponent(slug || "")}`}
+        />
+      </Head>
+
+      <main className="container mx-auto p-4 md:w-5/6">
+        {/* SEO-friendly server-rendered H1 */}
+        <h1
+          id="compare-heading"
+          className="mb-8 mt-28 text-center text-base font-bold md:text-4xl"
+        >
+          {pageTitle}
+        </h1>
+
+        {/* JSON-LD injected after hydration */}
+        <Script
+          id="compare-jsonld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+
+        {/* Client-only comparison UI */}
+        <ComparePageClient fetchedData={fetchedData} />
+      </main>
+    </>
+  );
 }

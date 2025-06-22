@@ -16,10 +16,31 @@ import {
 } from "lucide-react";
 import { getNestedValue as getNestedPathValue } from "@/lib/comparisonUtils";
 import { ComparisonProductData } from "@/lib/hooks";
-import RadarChartSection from "./RadarChartSection";
-import { MacrosCell } from "./ui/MacrosCell";
-import { ScrollBasedTracingBeam } from "./ui/ScrollBasedTracingBeam";
-import { ShimmeringHoverInfoCard } from "./ui/HoverInfoCard";
+
+// Dynamically import heavy components
+import dynamic from 'next/dynamic';
+
+const RadarChartSection = dynamic(
+  () => import("./RadarChartSection"),
+  { 
+    ssr: false, 
+    loading: () => <div className="min-h-[300px] flex items-center justify-center">Loading chart...</div> 
+  }
+);
+const MacrosCell = dynamic(
+  () => import("./ui/MacrosCell").then(mod => mod.MacrosCell),
+  { 
+    ssr: false,
+    loading: () => <div className="py-4 text-center text-gray-500">Loading macros...</div>
+  }
+);
+const ScrollBasedTracingBeam = dynamic(
+  () => import("./ui/ScrollBasedTracingBeam").then((m) => m.ScrollBasedTracingBeam),
+  { ssr: false, loading: () => null }
+);const ShimmeringHoverInfoCard = dynamic(
+  () => import("./ui/HoverInfoCard").then(m => m.ShimmeringHoverInfoCard),
+  { ssr: false }
+);
 
 interface RadarChartDataPoint {
   amino: string;
