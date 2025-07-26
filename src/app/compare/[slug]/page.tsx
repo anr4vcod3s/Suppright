@@ -1,32 +1,37 @@
 // app/compare/[slug]/page.tsx
 import React from "react";
 import { Metadata } from "next";
-import { supabase } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client"; // Assuming this is your SSR-safe client
 import { ComparisonProvider } from "@/context/context";
 import { ComparisonProductData } from "@/lib/hooks";
 import ComparePageClient from "./ComparePageClient";
 
 // ----- Caching Configuration -----
-// This is the new line. It enables Incremental Static Regeneration (ISR).
+// This enables Incremental Static Regeneration (ISR).
 // The page will be cached for 1 hour (3600 seconds).
 // Subsequent visits within this hour will be served instantly from the cache.
 export const revalidate = 3600;
 
 // ----- Types -----
+// FIX: The PageProps interface now includes `searchParams` to match the
+// type expected by Next.js. This resolves the deployment build error.
+// `params.slug` is also now non-optional, as it's a required parameter for this route.
+interface PageProps {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
 export interface FetchedInitialData {
   products: ComparisonProductData[];
   error?: string;
 }
 
-interface PageProps {
-  params: { slug?: string };
-}
-
 // ----- Data Fetcher (Runs on the Server) -----
 async function getInitialComparisonData(
-  slug?: string
+  slug: string,
 ): Promise<FetchedInitialData> {
-  if (!slug || !slug.trim()) {
+  // NOTE: The function now expects a non-optional slug.
+  if (!slug.trim()) {
     return { products: [], error: "No comparison slug provided." };
   }
   const productSlugs = slug.split("-vs-").filter(Boolean);
@@ -72,26 +77,25 @@ export async function generateMetadata({
   const { slug } = params;
   const { products } = await getInitialComparisonData(slug);
   const productNames = products.map((p) => `${p.brand} ${p.name}`);
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://suppright.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://suppright.com";
 
   const title =
     productNames.length > 0
       ? `${productNames.join(
-          " vs "
+          " vs ",
         )}: Price, Macros & Amino Profile Comparison (India ${new Date().getFullYear()})`
       : "Compare Indian Supplements | SuppCheck";
   const description =
     productNames.length > 0
       ? `Compare ${productNames.join(
-          ", "
+          ", ",
         )} side-by-side: price, protein content, amino profiles and more.`
       : "Compare supplements on SuppCheck for price, macros, and amino profile.";
 
   return {
     title,
     description,
-    alternates: { canonical: `${baseUrl}/compare/${slug || ""}` },
+    alternates: { canonical: `${baseUrl}/compare/${slug}` },
     openGraph: { title, description },
   };
 }
@@ -100,9 +104,12 @@ export async function generateMetadata({
 export default async function CompareProductsPage({ params }: PageProps) {
   const { slug } = params;
   const { products: initialProducts, error } = await getInitialComparisonData(
-    slug
+    slug,
   );
 
+  // NOTE: The page title is rendered here on the server. For a fully dynamic title
+  // that updates when users add/remove products on the client, this H1 should be
+  // moved into the `ComparePageClient` component.
   const pageTitle =
     initialProducts.length > 0
       ? `${initialProducts.map((p) => `${p.brand} ${p.name}`).join(" vs ")}`
