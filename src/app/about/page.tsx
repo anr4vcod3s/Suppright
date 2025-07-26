@@ -15,10 +15,7 @@ const AboutPage: React.FC = () => {
       </div>
 
       <div className="prose text-lg prose-lg mx-auto mt-10 max-w-none dark:prose-invert">
-        <p className="text-center">
-          I couldn’t find a clean way to compare supplements in India, so I
-          built one.
-        </p>
+        
 
         <br />
 
@@ -105,7 +102,7 @@ const AboutPage: React.FC = () => {
         <p className="text-gray-700 dark:text-gray-300">
           For details on how the site operates, please review our {" "}
           <Link
-            href="/tos"
+            href="/terms-of-service"
             className="font-medium text-blue-600 hover:underline dark:text-blue-500"
           >
             Terms of Service

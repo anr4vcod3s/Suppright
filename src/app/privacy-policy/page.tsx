@@ -44,7 +44,7 @@ const PrivacyPage: React.FC = () => {
             protecting your privacy. This Privacy Policy explains what data we
             collect, how we use it, and your choices when you use our website. By
             using this site, you acknowledge our{" "}
-            <Link href="/terms" className="text-blue-600 dark:text-blue-400 underline">
+            <Link href="/terms-of-service" className="text-blue-600 dark:text-blue-400 underline">
               Terms of Service
             </Link>{" "}
             and this Privacy Policy.

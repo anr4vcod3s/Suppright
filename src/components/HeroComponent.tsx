@@ -1,22 +1,45 @@
 "use client";
-import React, { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { SearchComponent } from "@/components/SearchComponent";
+import { Button } from "@/components/ui/button";
 import { Product } from "@/lib/schemas";
+import { useComparison } from "@/context/context";
 
 const HeroComponent = () => {
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { products, addProduct, removeProduct } = useComparison();
 
   const handleProductSelect = (product: Product) => {
-    console.log("Selected product:", product);
+    addProduct(product.id);
+  };
+
+  // Generate comparison URL same as ComparisonDisplay component
+  const compareUrl = useMemo(() => {
+    if (products.length < 2) return "#";
+    const slugs = products
+      .map((p) => p.slug)
+      .filter(Boolean)
+      .sort();
+    return slugs.length >= 2 ? `/compare/${slugs.join("-vs-")}` : "#";
+  }, [products]);
+
+  const canCompare = products.length >= 2 && compareUrl !== "#";
+
+  const handleCompare = () => {
+    if (canCompare) {
+      router.push(compareUrl);
+    }
   };
 
   useEffect(() => {
     const handleFocus = (event: FocusEvent) => {
       const target = event.target as HTMLElement;
 
-      // Only act if the focused element is an input inside the search container
       if (
         window.innerWidth <= 768 &&
         searchContainerRef.current &&
@@ -28,7 +51,7 @@ const HeroComponent = () => {
             behavior: "smooth",
             block: "start",
           });
-        }, 300); // Wait for mobile keyboard to animate
+        }, 300);
       }
     };
 
@@ -50,7 +73,7 @@ const HeroComponent = () => {
 
       <div className="sm:absolute md:top-0 sm:top-1/3 md:relative z-20 flex flex-col items-center w-11/12 md:w-10/12">
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground relative leading-snug">
-          India’s Smartest {""}
+          India&apos;s Smartest {""}
           <span className="relative inline-block">
             <motion.span
               initial={{ scaleX: 0 }}
@@ -76,9 +99,62 @@ const HeroComponent = () => {
 
         <div
           ref={searchContainerRef}
-          className="md:w-3/5 flex justify-center"
+          className="md:w-3/5 w-full flex flex-col items-center gap-3"
         >
-          <SearchComponent onProductSelect={handleProductSelect} />
+          {/* Container for Search bar and Compare button */}
+          <div className="w-full flex justify-center">
+            <div className="relative w-full max-w-xl flex items-center">
+              <div className="flex-grow">
+                <SearchComponent onProductSelect={handleProductSelect} />
+              </div>
+              
+              {/* Compare button positioned to the right */}
+              <AnimatePresence>
+                {products.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, x: 20 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="ml-2"
+                  >
+                    <Button 
+                      onClick={handleCompare}
+                      disabled={!canCompare}
+                      className={`h-10 rounded-full ${!canCompare ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      Compare 
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Container for selected product pills */}
+          <AnimatePresence>
+            {products.map((product) => (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -50, transition: { duration: 0.2 } }}
+                className="relative w-full max-w-xl flex items-center justify-between bg-background/30 backdrop-blur-sm border border-white/20 rounded-full py-2 pl-5 pr-3 text-sm text-left"
+              >
+                <span className="truncate text-muted-foreground">
+                  {product.name}
+                </span>
+                <button
+                  onClick={() => removeProduct(product.id)}
+                  className="ml-2 p-1 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
+                  aria-label={`Remove ${product.name} from comparison`}
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </div>

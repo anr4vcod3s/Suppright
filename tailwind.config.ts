@@ -5,6 +5,8 @@ import tailwindCssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
+  // This `content` configuration is correct and is the key to purging unused CSS.
+  // It tells Tailwind to scan all these files for class names during the build process.
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -76,7 +78,6 @@ export default {
         aurora: "aurora 60s linear infinite",
         "upward-sheen": "upward-sheen 10s infinite",
         "spin-slow": "spin 3s linear infinite",
-        // --- ADDED FOR SHIMMER EFFECT ---
         shimmer: "shimmer 4s linear infinite",
       },
       keyframes: {
@@ -102,7 +103,6 @@ export default {
             opacity: "0",
           },
         },
-        // --- ADDED FOR SHIMMER EFFECT ---
         shimmer: {
           "0%": { backgroundPosition: "200% 0" },
           "100%": { backgroundPosition: "-200% 0" },

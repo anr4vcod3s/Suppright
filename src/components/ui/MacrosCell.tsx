@@ -36,9 +36,10 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
     );
   }
 
-  const proteinColor = "#10B981"; // Blue
-  const carbsColor = "#3B82F6"; // Green
-  const fatsColor = "#F59E0B"; // Amber/Orange
+  // These colors are now used ONLY for the visual progress bars.
+  const proteinColor = "#15803D"; // Green
+  const carbsColor = "#2563EB"; // Blue
+  const fatsColor = "#B45309"; // Amber/Orange
 
   return (
     <div className="py-2 px-0.5 flex flex-col items-center justify-around min-h-[100px] space-y-2 lg:py-3 lg:px-1 lg:min-h-[140px] lg:space-y-3">
@@ -51,10 +52,8 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
           strokeWidth={7}
           delay={index * 100}
         />
-        <span
-          style={{ color: proteinColor }}
-          className="mt-1 text-base lg:text-lg font-semibold"
-        >
+        {/* FIX: Removed inline style, added standard high-contrast text classes */}
+        <span className="mt-1 text-base lg:text-lg font-semibold text-gray-800 dark:text-gray-200">
           Protein
         </span>
       </div>
@@ -68,10 +67,8 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
             strokeWidth={6}
             delay={index * 100 + 100}
           />
-          <span
-            style={{ color: carbsColor }}
-            className="mt-1 text-base lg:text-lg font-medium"
-          >
+          {/* FIX: Removed inline style, added standard high-contrast text classes */}
+          <span className="mt-1 text-base lg:text-lg font-medium text-gray-800 dark:text-gray-200">
             Carbs
           </span>
         </div>
@@ -84,10 +81,8 @@ export const MacrosCell: React.FC<MacrosCellProps> = ({ product, index }) => {
             strokeWidth={6}
             delay={index * 100 + 200}
           />
-          <span
-            style={{ color: fatsColor }}
-            className="mt-1 text-base lg:text-lg font-medium"
-          >
+          {/* FIX: Removed inline style, added standard high-contrast text classes */}
+          <span className="mt-1 text-base lg:text-lg font-medium text-gray-800 dark:text-gray-200">
             Fat
           </span>
         </div>

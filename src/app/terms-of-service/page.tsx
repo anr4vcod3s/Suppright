@@ -43,7 +43,7 @@ const TosPage: React.FC = () => {
             Welcome to Suppright. By accessing or using our website, you agree
             to be bound by these Terms of Service and our{" "}
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               className="text-blue-600 dark:text-blue-400 underline"
             >
               Privacy Policy
