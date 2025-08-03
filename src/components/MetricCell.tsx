@@ -36,7 +36,7 @@ export const MetricCell: React.FC<MetricCellProps> = ({
 
   // This is our new standard container for consistent padding and alignment.
   const cellWrapper = (content: React.ReactNode) => (
-    <div className="py-4 px-5 h-full w-full flex flex-col items-start justify-center text-left">
+    <div className="py-4 pl-8 px-5 h-full w-full flex flex-col items-start justify-center text-left">
       {content}
     </div>
   );

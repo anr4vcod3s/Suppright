@@ -4,7 +4,7 @@ const nextConfig = {
     domains: [
       "example.com",
       "placehold.co",
-      "supabase.co",
+      "slxbovqsolmiopzsdtpe.supabase.co",
     ],
   },
   // Cache static assets for 1 year

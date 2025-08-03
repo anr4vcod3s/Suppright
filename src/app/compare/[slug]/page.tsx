@@ -1,6 +1,5 @@
 // app/compare/[slug]/page.tsx
 import React from "react";
-import { Metadata } from "next";
 import { supabase } from "@/lib/supabase/client";
 import { ComparisonProvider } from "@/context/context";
 import { ComparisonProductData } from "@/lib/hooks";
@@ -17,11 +16,9 @@ export interface FetchedInitialData {
   error?: string;
 }
 
-// FIX: This is the corrected interface that solves the TypeScript build error.
-// It now includes `searchParams`, which Next.js requires for all page components.
+
 interface PageProps {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ slug: string }>; // ✅ Now a Promise
 }
 
 // ----- Data Fetcher (Runs on the Server) -----
@@ -70,8 +67,7 @@ async function getInitialComparisonData(
 // ----- Metadata for SEO (Runs on the Server) -----
 export async function generateMetadata({
   params,
-}: PageProps): Promise<Metadata> {
-  const { slug } = params;
+}: PageProps): Promise<import("next").Metadata> {  const { slug } = await params; // ✅ Now awaited
   const { products } = await getInitialComparisonData(slug);
   const productNames = products.map((p) => `${p.brand} ${p.name}`);
   const baseUrl =
@@ -100,7 +96,7 @@ export async function generateMetadata({
 
 // ----- Page Component (Server Component) -----
 export default async function CompareProductsPage({ params }: PageProps) {
-  const { slug } = params;
+  const { slug } = await params;
   const { products: initialProducts, error } = await getInitialComparisonData(
     slug,
   );
