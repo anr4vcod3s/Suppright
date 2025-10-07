@@ -11,32 +11,28 @@ const AboutPage: React.FC = () => {
   return (
     <div className="container mt-32 mx-auto max-w-4xl p-4 py-12">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold tracking-tight">About Me</h1>
+        <h1 className="mb-4 text-4xl font-bold tracking-tight">About Us</h1>
       </div>
 
       <div className="prose text-lg prose-lg mx-auto mt-10 max-w-none dark:prose-invert">
-        
 
         <br />
 
         <p className="text-center">
-          Hi! I’m <strong>Arnav</strong>, a computer science student and fitness
-          enthusiast. One day between sets, a friend and I argued over which
-          protein was better. I checked online and realized that there was no real
-          tool for honest supplement comparisons in the Indian market.
+          Welcome to Suppright, a leading provider of comprehensive supplement comparisons in the Indian market. We recognized a significant gap in the availability of trustworthy tools to evaluate nutritional products, and our mission is to empower consumers with data-driven insights.
         </p>
 
         <br />
 
         <p className="text-center">
-          That’s why I created Suppright - a simple, data-first tool that helps
-          you cut through the noise and make smarter supplement choices.
+          Suppright offers a straightforward, data-first platform designed to enhance decision-making in supplement choices. Our goal is to cut through the noise surrounding health products and provide clear, honest comparisons.
         </p>
 
         <br />
 
         <p className="text-center">
-          I lift a lot, think a lot more, and reply to emails. Get in touch
+          We are committed to elevating your fitness journey by delivering reliable information. Connect with us to learn more about how Suppright can support your health and wellness goals.
+
           <a
             href="mailto:contact@suppright.com"
             className="font-medium text-blue-600 hover:underline dark:text-blue-400"
